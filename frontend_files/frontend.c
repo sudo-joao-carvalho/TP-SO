@@ -12,8 +12,10 @@ int main(int argc, char* argv){
     }
 
     if(argc == 3){
-        client->nome = user;
-        client->password = pass; 
+        strcpy(client->nome, user);
+        strcpy(client->password, pass);
+
+        printf("%s %s", client->nome, client->password); 
     }
 
     return 0;
