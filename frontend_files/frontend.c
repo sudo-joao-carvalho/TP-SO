@@ -18,7 +18,7 @@ bool lerCommands(){
         }
         spaceCounts++;
 
-        printf("%d\n", spaceCounts);
+        //printf("%d\n", spaceCounts);
         token = strtok(NULL, " ");
     }
 
@@ -26,13 +26,13 @@ bool lerCommands(){
 
         if(spaceCounts == 6){
             printf("Numero de argumentos valido\n");
-            printf("COMANDO SELL EM EXECUCAO");
+            printf("COMANDO SELL EM EXECUCAO\n");
         }else if(spaceCounts < 6){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>");
+            printf("[FORMATO] sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>\n");
         }else if(spaceCounts > 6){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>");
+            printf("[FORMATO] sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>\n");
         }
 
         return true;
@@ -41,13 +41,13 @@ bool lerCommands(){
 
         if(spaceCounts == 1){
             printf("Numero de argumentos valido\n");
-            printf("COMANDO LIST EM EXECUCAO");
+            printf("COMANDO LIST EM EXECUCAO\n");
         }else if(spaceCounts < 1){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] list");
+            printf("[FORMATO] list\n");
         }else if(spaceCounts > 1){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] list");
+            printf("[FORMATO] list\n");
         }
 
         return true;
@@ -56,13 +56,13 @@ bool lerCommands(){
 
         if(spaceCounts == 2){
             printf("Numero de argumentos valido\n");
-            printf("COMANDO LICAT EM EXECUCAO");
+            printf("COMANDO LICAT EM EXECUCAO\n");
         }else if(spaceCounts < 2){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] licat <nome-categoria");
+            printf("[FORMATO] licat <nome-categoria\n");
         }else if(spaceCounts > 2){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] licat <nome-categoria");
+            printf("[FORMATO] licat <nome-categoria\n");
         }
 
         return true;
@@ -71,13 +71,13 @@ bool lerCommands(){
             
         if(spaceCounts == 2){
             printf("Numero de argumentos valido\n");
-            printf("COMANDO LISEL EM EXECUCAO");
+            printf("COMANDO LISEL EM EXECUCAO\n");
         }else if(spaceCounts < 2){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] lisel <username do vendedor>");
+            printf("[FORMATO] lisel <username do vendedor>\n");
         }else if(spaceCounts > 2){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] lisel <username do vendedor>");
+            printf("[FORMATO] lisel <username do vendedor>\n");
         }
 
         return true;
@@ -86,13 +86,13 @@ bool lerCommands(){
             
         if(spaceCounts == 2){
             printf("Numero de argumentos valido\n");
-            printf("COMANDO LIVAL EM EXECUCAO");
+            printf("COMANDO LIVAL EM EXECUCAO\n");
         }else if(spaceCounts < 2){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] lival <preço-máximo>");
+            printf("[FORMATO] lival <preço-máximo>\n");
         }else if(spaceCounts > 2){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] lival <preço-máximo>");
+            printf("[FORMATO] lival <preço-máximo>\n");
         }
 
         return true;
@@ -101,13 +101,13 @@ bool lerCommands(){
             
         if(spaceCounts == 2){
             printf("Numero de argumentos valido\n");
-            printf("COMANDO LITIME EM EXECUCAO");
+            printf("COMANDO LITIME EM EXECUCAO\n");
         }else if(spaceCounts < 2){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] litime <hora-em-segundos>");
+            printf("[FORMATO] litime <hora-em-segundos>\n");
         }else if(spaceCounts > 2){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] litime <hora-em-segundos>");
+            printf("[FORMATO] litime <hora-em-segundos>\n");
         }
           
         return true;
@@ -116,13 +116,13 @@ bool lerCommands(){
             
         if(spaceCounts == 1){
             printf("Numero de argumentos valido\n");
-            printf("COMANDO TIME EM EXECUCAO");
+            printf("COMANDO TIME EM EXECUCAO\n");
         }else if(spaceCounts < 1){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] time");
+            printf("[FORMATO] time\n");
         }else if(spaceCounts > 1){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] time");
+            printf("[FORMATO] time\n");
         }
 
         return true;
@@ -131,13 +131,13 @@ bool lerCommands(){
         
         if(spaceCounts == 3){
             printf("Numero de argumentos valido\n");
-            printf("COMANDO BUY EM EXECUCAO");
+            printf("COMANDO BUY EM EXECUCAO\n");
         }else if(spaceCounts < 3){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] buy <id> <valor>");
+            printf("[FORMATO] buy <id> <valor>\n");
         }else if(spaceCounts > 3){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] buy <id> <valor>");
+            printf("[FORMATO] buy <id> <valor>\n");
         }
 
         return true;
@@ -146,13 +146,13 @@ bool lerCommands(){
 
         if(spaceCounts == 1){
             printf("Numero de argumentos valido\n");
-            printf("COMANDO CASH EM EXECUCAO");
+            printf("COMANDO CASH EM EXECUCAO\n");
         }else if(spaceCounts < 1){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] cash");
+            printf("[FORMATO] cash\n");
         }else if(spaceCounts > 1){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] cash");
+            printf("[FORMATO] cash\n");
         }
 
         return true;
@@ -161,13 +161,13 @@ bool lerCommands(){
             
         if(spaceCounts == 2){
             printf("Numero de argumentos valido\n");
-            printf("COMANDO ADD EM EXECUCAO");
+            printf("COMANDO ADD EM EXECUCAO\n");
         }else if(spaceCounts < 2){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] add <valor>");
+            printf("[FORMATO] add <valor>\n");
         }else if(spaceCounts > 2){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] add <valor>");
+            printf("[FORMATO] add <valor>\n");
         }
 
         return true;
@@ -176,19 +176,19 @@ bool lerCommands(){
 
         if(spaceCounts == 1){
             printf("Numero de argumentos valido\n");
-            printf("COMANDO EXIT EM EXECUCAO");
+            printf("COMANDO EXIT EM EXECUCAO\n");
         }else if(spaceCounts < 2){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] exit");
+            printf("[FORMATO] exit\n");
         }else if(spaceCounts > 2){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] exit");
+            printf("[FORMATO] exit\n");
         }
 
         return false;
             
     }else{
-        printf("[ERRO] Comando invalido");
+        printf("[ERRO] Comando invalido\n\n");
         return true;
     }
 
@@ -202,11 +202,11 @@ int main(int argc, char** argv){
 
     if(argc < 3){
         printf("[ERRO] Numero de comandos inseridos invalido\n");
-        printf("[FORMATO] ./frontend username password");
+        printf("[FORMATO] ./frontend username password\n");
         return -1;
     }else if(argc > 3){
         printf("[ERRO] Numero de comandos inseridos invalido\n");
-        printf("[FORMATO] ./frontend username password");
+        printf("[FORMATO] ./frontend username password\n");
         return -1;
     }
 
