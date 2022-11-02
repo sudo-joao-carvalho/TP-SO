@@ -11,3 +11,7 @@ typedef struct Clientes{
     char password[TAM];
     int saldo;
 } Clientes, *ptrClientes;
+
+/*typedef struct commandHandler{
+    char** command;
+} Commands, *ptrCommands;*/
