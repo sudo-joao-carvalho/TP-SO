@@ -16,6 +16,18 @@ typedef struct Clientes{
     int saldo;
 } Clientes, *ptrClientes;
 
-/*typedef struct Promotor{
+typedef struct Promotor{
+    char message[TAM];
+} Promotor, *ptrPromotor;
 
-}*/
+typedef struct Itens
+{
+    int id;
+    char nome[TAM];
+    char categoria[TAM];
+    int preco_base; //valor a ser incrementado
+    const int comprar_ja;
+    int tempo;
+    char nomeV[TAM];
+    char nomeC[TAM];
+} Itens, *ptrItens;

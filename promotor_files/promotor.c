@@ -2,11 +2,15 @@
 
 int main(int argc, char** argv){
 
+    ptrPromotor p = malloc(sizeof(Promotor));
+
     char msg[TAM];
     ptrHandlerPromotor textPp = malloc(sizeof(HandlerPromotor));
 
     printf("Qual o texto que pretende mandar: ");
     fgets(msg, TAM, stdin);
+
+    strcpy(p->message, msg);
 
     pipe(textPp->fd);
 
