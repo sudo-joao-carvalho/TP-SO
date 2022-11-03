@@ -217,7 +217,7 @@ int main(int argc, char** argv){
         strcpy(client->nome, user);
         strcpy(client->password, pass);
 
-        printf("Que comando inicial pretende inserir? <comandos> || <execuçao promotor> || <utilizador> || <itens> \n");
+        printf("Deseja testar que funcionalidade? <comandos> || <execuçao promotor> || <utilizador> || <itens> \n");
         scanf(" %s", initCommand);
 
         if(strcmp(initCommand, "comandos") == 0){
