@@ -18,6 +18,9 @@ typedef struct Clientes{
 
 typedef struct Promotor{
     char message[TAM];
+    char categoria[TAM];
+    int desconto;
+    int duracao;
 } Promotor, *ptrPromotor;
 
 typedef struct Itens
