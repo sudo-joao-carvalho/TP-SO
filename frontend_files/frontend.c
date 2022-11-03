@@ -20,7 +20,6 @@ bool lerCommands(){
         }
         wordCounts++;
 
-        //printf("%d\n", wordCounts);
         token = strtok(NULL, " ");
     }
 
