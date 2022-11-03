@@ -7,13 +7,13 @@ int main(int argc, char** argv){
 
     pipe(textPp->fd);
 
+    printf("Qual o texto que pretende mandar: ");
+    fgets(msg, TAM, stdin);
+
     close(0);
     dup(textPp->fd[0]);
     close(textPp->fd[0]);
     close(textPp->fd[1]);
-
-    printf("Qual o texto que pretende mandar: ");
-    fgets(msg, TAM, stdin);
 
     //printf("\n\n[MSG] %s\n\n", msg);
 
