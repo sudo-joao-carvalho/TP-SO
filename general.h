@@ -13,6 +13,6 @@ typedef struct Clientes{
     int saldo;
 } Clientes, *ptrClientes;
 
-/*typedef struct commandHandler{
-    char** command;
-} Commands, *ptrCommands;*/
+/*typedef struct Promotor{
+
+}*/
