@@ -11,12 +11,11 @@ int main(int argc, char** argv){
         return -4;
     }else if(id == 0){
         //printf("Promotor criado com sucesso\n\n");
-
         execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/promotor", "./promotor", NULL);
     }else if(id > 0){
         printf("1o criar o promotor\n\n");
-        wait(&id);
-        scanf(" %s", msgPromotor);
+        fgets(msgPromotor, TAM, stdin);
+        //printf("\ndepois de receber\n");
         printf("%s", msgPromotor);
     }
     
