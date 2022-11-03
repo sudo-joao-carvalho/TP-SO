@@ -6,6 +6,8 @@ bool lerCommands(){
     char firstCommand[10];
     char* token;
 
+    fflush(stdin);
+
     printf("Insira o comando que pretende executar: ");
     fgets(command, TAM, stdin);
 
@@ -198,6 +200,7 @@ int main(int argc, char** argv){
 
     char* user = argv[1];
     char* pass = argv[2];
+    char initCommand[TAM];
     ptrClientes client = malloc(sizeof(Clientes));
 
     if(argc < 3){
@@ -211,14 +214,41 @@ int main(int argc, char** argv){
     }
 
     if(argc == 3){
+
         strcpy(client->nome, user);
         strcpy(client->password, pass);
 
-        //printf("%s %s", client->nome, client->password); 
-        while(1){
+        printf("Que comando inicial pretende inserir? <comandos> || <execuçao promotor> || <utilizador> || <itens> \n");
+        scanf(" %s", initCommand);
+
+        if(strcmp(initCommand, "comandos") == 0){
             if(lerCommands() == false) return 0;
+        }else if(strcmp(initCommand, "execucao") == 0){
+
+            int fid = fork();
+
+            if(fid < 0){
+                printf("[ERRO] Backend nao foi criado com sucesso\n");
+                return -4;
+            }else if(fid == 0){
+                execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/backend_files/backend", "./backend", NULL);
+            }else if(fid > 0){
+                wait(&fid);
+            }
+            
+        }else if(strcmp(initCommand, "utilizador") == 0){
+            printf("\nutilizador\n");
+        }else if(strcmp(initCommand, "itens") == 0){
+            printf("\nitens\n");
+        }else{
+            printf("\n\t[ERRO] Comando errado");
+            return -1;
         }
-        
+
+
+        //while(1)
+        //    if(lerCommands() == false) return 0;
+
     }
 
     return 0;
