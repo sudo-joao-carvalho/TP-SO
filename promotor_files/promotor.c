@@ -15,7 +15,6 @@ int main(int argc, char** argv){
     close(textPp->fd[0]);
     close(textPp->fd[1]);
 
-    //RETOMAR
     write(textPp->fd[1], msg, sizeof(msg));
     close(textPp->fd[0]);
 
