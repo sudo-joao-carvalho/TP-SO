@@ -2,6 +2,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #define TAM 50
 

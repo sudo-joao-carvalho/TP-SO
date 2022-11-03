@@ -13,10 +13,10 @@ int main(int argc, char** argv){
         return -4;
     }else if(id == 0){
         printf("Promotor criado com sucesso\n\n");
-        execl("../promotor_files/./promotor", "./promotor", NULL);
+        execl("./promotor", "./promotor", NULL);
     }else if(id > 0){
         printf("1o criar o promotor\n\n");
-
+        wait(&id);
     }
     
 
