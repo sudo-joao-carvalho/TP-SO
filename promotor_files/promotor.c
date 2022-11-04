@@ -4,11 +4,13 @@ int main(int argc, char** argv){
 
     char msg[TAM];
     char *token;
-    ptrHandlerPromotor textPp = malloc(sizeof(HandlerPromotor));
     ptrPromotor p = malloc(sizeof(Promotor));
 
-    printf("Qual o texto que pretende mandar: ");
-    fgets(msg, TAM, stdin);
+    //printf("Qual o texto que pretende mandar: ");
+    //fgets(msg, TAM, stdin);
+    //printf("%s", p->message);
+
+    strcpy(p->message, "ola 10 100");
 
     int wordCounts = 0;
     token = strtok(msg, " \n");
@@ -29,17 +31,7 @@ int main(int argc, char** argv){
         token = strtok(NULL, " ");
     }
 
-    strcpy(p->message, msg);
-
-    pipe(textPp->fd);
-
-    close(0);
-    dup(textPp->fd[0]);
-    close(textPp->fd[0]);
-    close(textPp->fd[1]);
-
-    write(textPp->fd[1], msg, sizeof(msg));
-    close(textPp->fd[0]);
+    printf("%s", p->message);// printa a mensagem do promotor para o backend
 
     return 0;
 
