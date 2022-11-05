@@ -145,27 +145,28 @@ void commandsAdministrador(){
 
 }
 
-void readItens(ptrItens i){
+ptrItens readItens(ptrItens i){
 
     FILE* ptr;
     ptr = fopen("itens_leilao.txt", "r");
 
     if (NULL == ptr) {
         printf("file can't be opened \n");
-        return ;
+        return i;
     }  
     
     while (!feof(ptr)){
         if(feof(ptr)){
             break;
         }
-       
+
         fscanf(ptr," %d %s %s %d %d %d %s %s", &(i->id), i->nome, i->categoria, &(i->preco_base), &(i->comprar_ja), &(i->tempo), i->nomeV, i->nomeC);
         printf("\n%d %s %s %d %d %d %s %s\n", i->id, i->nome, i->categoria, i->preco_base, i->comprar_ja, i->tempo, i->nomeV, i->nomeC);
          
     }
            
     fclose(ptr);
+    return i;
 
  }   
 
@@ -211,7 +212,7 @@ int main(int argc, char** argv){
         printf("\nutilizador\n");
         return 0;
     }else if(strcmp(initCommand, "itens") == 0){
-        readItens(itens);
+        itens = readItens(itens);
         return 0;
     }else{
         printf("\n\t[ERRO] Comando errado");

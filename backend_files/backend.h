@@ -7,7 +7,7 @@ typedef struct HandlerPromotor{
     int fd[2];
 } HandlerPromotor, *ptrHandlerPromotor;
 
-void readItens(ptrItens i);
+ptrItens readItens(ptrItens i);
 void commandsAdministrador();
 void commandHelp();
 
