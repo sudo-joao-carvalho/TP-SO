@@ -3,7 +3,7 @@
 //DUVIDA NOS ITENS: ao ler eles devem ser introduzimos por exemplo num array dinamico
 //BUG: usar a funcao de comandos que se encontra na parte do frontend, devido a existencia de duas mains, como é que vou executar as duas em terminais diferentes
 
-void commandsAdministradorValidation(){
+void commandsAdministrador(){
 
     char command[TAM];
     char firstCommand[10];
@@ -26,7 +26,22 @@ void commandsAdministradorValidation(){
         token = strtok(NULL, " ");
     }
 
-    
+     if(strcmp(firstCommand, "sell") == 0){
+
+        if(wordCounts == 6){
+            printf("Numero de argumentos valido\n");
+            printf("COMANDO SELL EM EXECUCAO\n");
+        }else if(wordCounts < 6){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>\n");
+        }else if(wordCounts > 6){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>\n");
+        }
+
+        return true;
+
+    }
 
 }
 
@@ -68,7 +83,7 @@ int main(int argc, char** argv){
     scanf(" %s", initCommand);
 
     if(strcmp(initCommand, "comandos") == 0){
-        if(readCommands() == false) return 0;
+        commandsAdministrador();
     }else if(strcmp(initCommand, "execucao") == 0){
 
         pipe(textPp->fd);

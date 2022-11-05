@@ -228,7 +228,7 @@ bool readCommands(){
 
 }
 
-/*int main(int argc, char** argv){
+int main(int argc, char** argv){
 
     char* user = argv[1];
     char* pass = argv[2];
@@ -248,6 +248,8 @@ bool readCommands(){
 
         strcpy(client->nome, user);
         strcpy(client->password, pass);
+
+        if(readCommands() == false) return 0;
         //while(1)
         //    if(lerCommands() == false) return 0;
 
@@ -255,4 +257,4 @@ bool readCommands(){
 
     return 0;
 
-}*/
+}
