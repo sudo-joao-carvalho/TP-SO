@@ -29,7 +29,7 @@ typedef struct Itens
     char nome[TAM];
     char categoria[TAM];
     int preco_base; //valor a ser incrementado
-    const int comprar_ja;
+    int comprar_ja;
     int tempo;
     char nomeV[TAM];
     char nomeC[TAM];
