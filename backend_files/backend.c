@@ -1,7 +1,19 @@
 #include "backend.h"
 
 //DUVIDA NOS ITENS: ao ler eles devem ser introduzimos por exemplo num array dinamico
-//BUG: usar a funcao de comandos que se encontra na parte do frontend, devido a existencia de duas mains, como é que vou executar as duas em terminais diferentes
+void commandHelp(){
+
+    printf("\n\n******************  Admin. Commands List  ******************\n\n");
+    printf("--> users\n");
+    printf("--> list\n");
+    printf("--> kick <username>\n");
+    printf("--> prom\n");
+    printf("--> reprom\n");
+    printf("--> cancel <nome-do-executavel-do-promotor>\n");
+    printf("--> help\n");
+    printf("--> close\n");
+
+}
 
 void commandsAdministrador(){
 
@@ -26,20 +38,109 @@ void commandsAdministrador(){
         token = strtok(NULL, " ");
     }
 
-     if(strcmp(firstCommand, "sell") == 0){
+     if(strcmp(firstCommand, "users") == 0){
 
-        if(wordCounts == 6){
+        if(wordCounts == 1){
             printf("Numero de argumentos valido\n");
-            printf("COMANDO SELL EM EXECUCAO\n");
-        }else if(wordCounts < 6){
+            printf("COMANDO USERS EM EXECUCAO\n");
+        }else if(wordCounts < 1){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>\n");
-        }else if(wordCounts > 6){
+            printf("[FORMATO] users\n");
+        }else if(wordCounts > 1){
             printf("[ERRO] Numero de argumentos invalido\n");
-            printf("[FORMATO] sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>\n");
+            printf("[FORMATO] users\n");
         }
 
-        return true;
+    }else if(strcmp(firstCommand, "list") == 0){
+
+        if(wordCounts == 1){
+            printf("Numero de argumentos valido\n");
+            printf("COMANDO USERS EM EXECUCAO\n");
+        }else if(wordCounts < 1){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] list\n");
+        }else if(wordCounts > 1){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] list\n");
+        }
+
+    }else if(strcmp(firstCommand, "kick") == 0){
+
+        if(wordCounts == 2){
+            printf("Numero de argumentos valido\n");
+            printf("COMANDO KICK EM EXECUCAO\n");
+        }else if(wordCounts < 2){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] kick <username>\n");
+        }else if(wordCounts > 2){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] kick <username>\n");
+        }
+
+    }else if(strcmp(firstCommand, "prom") == 0){
+
+        if(wordCounts == 1){
+            printf("Numero de argumentos valido\n");
+            printf("COMANDO PROM EM EXECUCAO\n");
+        }else if(wordCounts < 1){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] prom\n");
+        }else if(wordCounts > 1){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] prom\n");
+        }
+
+    }else if(strcmp(firstCommand, "reprom") == 0){
+
+        if(wordCounts == 1){
+            printf("Numero de argumentos valido\n");
+            printf("COMANDO REPROM EM EXECUCAO\n");
+        }else if(wordCounts < 1){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] reprom\n");
+        }else if(wordCounts > 1){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] reprom\n");
+        }
+
+    }else if(strcmp(firstCommand, "cancel") == 0){
+
+        if(wordCounts == 2){
+            printf("Numero de argumentos valido\n");
+            printf("COMANDO CANCEL EM EXECUCAO\n");
+        }else if(wordCounts < 2){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] cancel <nome-do-executavel-do-promotor>\n");
+        }else if(wordCounts > 2){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] cancel <nome-do-executavel-do-promotor>\n");
+        }
+
+    }else if(strcmp(firstCommand, "help") == 0){
+
+        if(wordCounts == 1){
+            printf("Numero de argumentos valido\n");
+            printf("COMANDO HELP EM EXECUCAO\n");
+        }else if(wordCounts < 1){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] help\n");
+        }else if(wordCounts > 1){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] help\n");
+        }
+
+    }else if(strcmp(firstCommand, "close") == 0){
+
+        if(wordCounts == 1){
+            printf("Numero de argumentos valido\n");
+            printf("COMANDO CLOSE EM EXECUCAO\n");
+        }else if(wordCounts < 1){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] close\n");
+        }else if(wordCounts > 1){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] close\n");
+        }
 
     }
 

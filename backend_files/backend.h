@@ -9,6 +9,7 @@ typedef struct HandlerPromotor{
 
 void readItens(ptrItens i);
 void commandsAdministrador();
+void commandHelp();
 
 #endif
 

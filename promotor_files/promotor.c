@@ -6,10 +6,6 @@ int main(int argc, char** argv){
     char *token;
     ptrPromotor p = malloc(sizeof(Promotor));
 
-    //printf("Qual o texto que pretende mandar: ");
-    //fgets(msg, TAM, stdin);
-    //printf("%s", p->message);
-
     strcpy(p->message, "ola 10 100");
 
     int wordCounts = 0;

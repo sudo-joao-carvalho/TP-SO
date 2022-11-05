@@ -5,7 +5,7 @@ void commandHelp(){
     printf("\n\n******************  Commands List  ******************\n\n");
     printf("--> sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>\n");
     printf("--> list\n");
-    printf("--> licat <nome-categoria\n");
+    printf("--> licat <nome-categoria>\n");
     printf("--> lisel <username do vendedor>\n");
     printf("--> lival <preço-máximo>\n");
     printf("--> litime <hora-em-segundos>\n");
