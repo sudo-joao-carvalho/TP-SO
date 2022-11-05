@@ -119,8 +119,7 @@ void commandsAdministrador(){
     }else if(strcmp(firstCommand, "help") == 0){
 
         if(wordCounts == 1){
-            printf("Numero de argumentos valido\n");
-            printf("COMANDO HELP EM EXECUCAO\n");
+            commandHelp();
         }else if(wordCounts < 1){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] help\n");
