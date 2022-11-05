@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "../frontend_files/frontend.h": "c",
+        "../backend_files/backend.h": "c",
+        "unistd.h": "c",
+        "string.h": "c",
+        "stdlib.h": "c"
+    }
+}

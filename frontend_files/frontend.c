@@ -1,7 +1,24 @@
-
 #include "frontend.h"
 
-bool lerCommands(){
+void commandHelp(){
+
+    printf("\n\n******************  Commands List  ******************\n\n");
+    printf("--> sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>\n");
+    printf("--> list\n");
+    printf("--> licat <nome-categoria\n");
+    printf("--> lisel <username do vendedor>\n");
+    printf("--> lival <preço-máximo>\n");
+    printf("--> litime <hora-em-segundos>\n");
+    printf("--> time\n");
+    printf("--> buy\n");
+    printf("--> cash\n");
+    printf("--> add\n");
+    printf("--> help\n");
+    printf("--> exit\n");
+
+}
+
+bool readCommands(){
 
     char command[TAM];
     char firstCommand[10];
@@ -174,6 +191,21 @@ bool lerCommands(){
 
         return true;
 
+    }else if(strcmp(firstCommand, "help") == 0){
+
+        if(wordCounts == 1){
+            printf("Numero de argumentos valido\n");
+            commandHelp();
+        }else if(wordCounts < 2){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] help\n");
+        }else if(wordCounts > 2){
+            printf("[ERRO] Numero de argumentos invalido\n");
+            printf("[FORMATO] help\n");
+        }
+
+        return false;
+
     }else if(strcmp(firstCommand, "exit") == 0){
 
         if(wordCounts == 1){
@@ -196,11 +228,10 @@ bool lerCommands(){
 
 }
 
-int main(int argc, char** argv){
+/*int main(int argc, char** argv){
 
     char* user = argv[1];
     char* pass = argv[2];
-    char initCommand[TAM];
     ptrClientes client = malloc(sizeof(Clientes));
 
     if(argc < 3){
@@ -217,34 +248,6 @@ int main(int argc, char** argv){
 
         strcpy(client->nome, user);
         strcpy(client->password, pass);
-
-        printf("Deseja testar que funcionalidade? <comandos> || <execuçao promotor> || <utilizador> || <itens> \n");
-        scanf(" %s", initCommand);
-
-        if(strcmp(initCommand, "comandos") == 0){
-            if(lerCommands() == false) return 0;
-        }else if(strcmp(initCommand, "execucao") == 0){
-
-            int fid = fork();
-
-            if(fid < 0){
-                printf("[ERRO] Backend nao foi criado com sucesso\n");
-                return -4;
-            }else if(fid == 0){
-                execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/backend_files/backend", "./backend", NULL);
-            }else if(fid > 0){
-                wait(&fid);
-            }
-            
-        }else if(strcmp(initCommand, "utilizador") == 0){
-            printf("\nutilizador\n");
-        }else if(strcmp(initCommand, "itens") == 0){
-            printf("\nitens\n");
-        }else{
-            printf("\n\t[ERRO] Comando errado");
-            return -1;
-        }
-
         //while(1)
         //    if(lerCommands() == false) return 0;
 
@@ -252,4 +255,4 @@ int main(int argc, char** argv){
 
     return 0;
 
-}
+}*/

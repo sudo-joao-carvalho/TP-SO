@@ -1,3 +1,9 @@
 #include "../general.h"
 
-bool lerComandos();
+#ifndef FRONTEND_H
+#define FRONTEND_H
+
+bool readCommands();
+void commandHelp();
+
+#endif
