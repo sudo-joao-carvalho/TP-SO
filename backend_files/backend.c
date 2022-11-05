@@ -1,8 +1,34 @@
 #include "backend.h"
 
-/*void commandsAdministradorValidation(){
+//DUVIDA NOS ITENS: ao ler eles devem ser introduzimos por exemplo num array dinamico
+//BUG: usar a funcao de comandos que se encontra na parte do frontend, devido a existencia de duas mains, como é que vou executar as duas em terminais diferentes
 
-}*/
+void commandsAdministradorValidation(){
+
+    char command[TAM];
+    char firstCommand[10];
+    char* token;
+
+    fflush(stdin);
+
+    printf("Insira o comando de administrador que pretende executar: ");
+    fgets(command, TAM, stdin);
+
+    token = strtok(command, " \n");
+
+    int wordCounts = 0;
+    while(token != NULL){
+        if(wordCounts == 0){
+            strcpy(firstCommand, token);
+        }
+        wordCounts++;
+
+        token = strtok(NULL, " ");
+    }
+
+    
+
+}
 
 void readItens(ptrItens i){
 
@@ -25,7 +51,7 @@ void readItens(ptrItens i){
     }
            
     fclose(ptr);
-    
+
  }   
 
 

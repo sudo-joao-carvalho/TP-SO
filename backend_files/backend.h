@@ -8,5 +8,7 @@ typedef struct HandlerPromotor{
 } HandlerPromotor, *ptrHandlerPromotor;
 
 void readItens(ptrItens i);
+void commandsAdministradorValidation();
+
 #endif
 

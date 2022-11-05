@@ -196,10 +196,10 @@ bool readCommands(){
         if(wordCounts == 1){
             printf("Numero de argumentos valido\n");
             commandHelp();
-        }else if(wordCounts < 2){
+        }else if(wordCounts < 1){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] help\n");
-        }else if(wordCounts > 2){
+        }else if(wordCounts > 1){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] help\n");
         }
@@ -211,10 +211,10 @@ bool readCommands(){
         if(wordCounts == 1){
             printf("Numero de argumentos valido\n");
             printf("COMANDO EXIT EM EXECUCAO\n");
-        }else if(wordCounts < 2){
+        }else if(wordCounts < 1){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] exit\n");
-        }else if(wordCounts > 2){
+        }else if(wordCounts > 1){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] exit\n");
         }
