@@ -15,6 +15,34 @@ void commandHelp(){
 
 }
 
+ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP){
+
+    char msgPromotor[TAM];
+
+    pipe(pP->fd);
+
+    int id = fork();
+
+    if(id < 0){
+        printf("[ERRO] Promotor nao foi criado com sucesso\n");
+        return NULL;
+    }else if(id == 0){
+        close(1); //fecha o stdout no file descriptor
+        dup(pP->fd[1]); //duplica o stdout
+        close(pP->fd[0]); //fecha o antigo
+        close(pP->fd[1]); // fecha a outra ponta do pipe
+
+        execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/promotor", "./promotor", NULL);
+    }else if(id > 0){
+        read(pP->fd[0], msgPromotor, sizeof(msgPromotor)); //lê o que recebe do printf do promotor atraves do pipe
+        close(pP->fd[1]); //fecha a ponta do pipe onde foi escrito
+        printf("%s", msgPromotor); //printa a mensagem do promotor
+        return 0;
+    }
+
+    return pP;
+}
+
 void commandsAdministrador(){
 
     char command[TAM];
@@ -141,17 +169,19 @@ void commandsAdministrador(){
             printf("[FORMATO] close\n");
         }
 
+    }else{
+        printf("[ERRO] Comando invalido\n\n");
     }
 
 }
 
-ptrItens readItens(ptrItens i){
+ptrItens readItens(ptrItens i, char* nome_fich){
 
     FILE* ptr;
-    ptr = fopen("itens_leilao.txt", "r");
+    ptr = fopen(nome_fich, "r");
 
-    if (NULL == ptr) {
-        printf("file can't be opened \n");
+    if (ptr == NULL) {
+        printf("[ERRO] Ficheiro nao existe\n");
         return i;
     }  
     
@@ -170,15 +200,11 @@ ptrItens readItens(ptrItens i){
 
  }   
 
-
-int main(int argc, char** argv){
-
-    char msgPromotor[TAM];
-    ptrHandlerPromotor textPp = malloc(sizeof(HandlerPromotor));
-    ptrItens itens = malloc(sizeof(Itens));
+void interface(ptrHandlerPromotor textPp, ptrItens itens){
 
     //Leitura dos comandos 1a meta
     char initCommand[TAM];
+    char nome_fich[TAM];
 
     printf("\nDeseja testar que funcionalidade? <comandos> || <execuçao promotor> || <utilizador> || <itens> \n");
     scanf(" %s", initCommand);
@@ -186,40 +212,46 @@ int main(int argc, char** argv){
     if(strcmp(initCommand, "comandos") == 0){
         commandsAdministrador();
     }else if(strcmp(initCommand, "execucao") == 0){
-
-        pipe(textPp->fd);
-
-        int id = fork();
-
-        if(id < 0){
-        printf("[ERRO] Promotor nao foi criado com sucesso\n");
-            return -4;
-        }else if(id == 0){
-            close(1); //fecha o stdout no file descriptor
-            dup(textPp->fd[1]); //duplica o stdout
-            close(textPp->fd[0]); //fecha o antigo
-            close(textPp->fd[1]); // fecha a outra ponta do pipe
-
-            execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/promotor", "./promotor", NULL);
-        }else if(id > 0){
-            read(textPp->fd[0], msgPromotor, sizeof(msgPromotor)); //lê o que recebe do printf do promotor atraves do pipe
-            close(textPp->fd[1]); //fecha a ponta do pipe onde foi escrito
-            printf("%s", msgPromotor); //printa a mensagem do promotor
-            return 0;
-        }
-
+        textPp = communicationPipe(textPp);
     }else if(strcmp(initCommand, "utilizador") == 0){
         printf("\nutilizador\n");
-        return 0;
+        return ;
     }else if(strcmp(initCommand, "itens") == 0){
-        itens = readItens(itens);
-        return 0;
+        printf("Qual o nome do ficheiro que deseja ler?\n");
+        scanf(" %s", nome_fich);
+        itens = readItens(itens, nome_fich);
+        return ;
     }else{
         printf("\n\t[ERRO] Comando errado");
-        return -1;
+        return ;
     }
     //Leitura dos comandos 1a meta
     
+}
+
+int main(int argc, char** argv){
+
+    ptrHandlerPromotor textPp = malloc(sizeof(HandlerPromotor));
+    ptrItens itens = malloc(sizeof(Itens));
+
+    if(textPp == NULL){
+        printf("[ERRO] Memoria nao alocada\n");
+        free(textPp);
+        return -1;
+    }
+
+    if(itens == NULL){
+        printf("[ERRO] Memoria nao alocada\n");
+        free(textPp);
+        free(itens);
+        return -1;
+    }
+
+    interface(textPp, itens);
+
+    free(textPp);
+    free(itens);
+
     return 0;
 
 }
