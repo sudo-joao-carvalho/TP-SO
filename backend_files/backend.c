@@ -32,7 +32,10 @@ ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP){
         close(pP->fd[0]); //fecha o antigo
         close(pP->fd[1]); // fecha a outra ponta do pipe
 
-        execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/promotor", "./promotor", NULL);
+        //execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/promotor", "./promotor", NULL);
+        //execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/promotor_oficial", "./promotor_oficial", NULL);
+        //execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/black_friday", "./black_fridayl", NULL);
+        exit(0);
     }else if(id > 0){
         read(pP->fd[0], msgPromotor, sizeof(msgPromotor)); //lê o que recebe do printf do promotor atraves do pipe
         close(pP->fd[1]); //fecha a ponta do pipe onde foi escrito

@@ -3,7 +3,7 @@ CC = gcc
 all: frontend backend promotor
 
 frontend:
-	@${CC} frontend_files/frontend.c -o ../frontendfiles/frontend
+	@${CC} frontend_files/frontend.c -o ../frontend_files/frontend
 	@echo Ficheiros de frontend compilados!
 
 backend:

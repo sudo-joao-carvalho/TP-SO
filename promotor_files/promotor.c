@@ -28,6 +28,7 @@ int main(int argc, char** argv){
     }
 
     printf("%s", p->message);// printa a mensagem do promotor para o backend
+    printf("\nmanuel 20 30");
 
     return 0;
 
