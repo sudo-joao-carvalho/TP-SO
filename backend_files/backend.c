@@ -15,6 +15,8 @@ void commandHelp(){
 
 }
 
+
+
 ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP){
 
     char msgPromotor[TAM];
