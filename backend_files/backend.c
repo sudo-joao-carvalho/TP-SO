@@ -267,9 +267,9 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes){
         scanf(" %s", nome_fich);
         itens = readItens(itens, nome_fich);
 
-        /*for(int i = 0; i < 2; i++){
+        for(int i = 0; i < 2; i++){
             printf("\n%d %s %s %d %d %d %s %s\n", itens[i].id, itens[i].nome, itens[i].categoria, itens[i].preco_base, itens[i].comprar_ja, itens[i].tempo, itens[i].nomeV, itens[i].nomeC);
-        }*/      
+        }
 
         return ;
     }else if(strcmp(initCommand, "help") == 0){
@@ -310,7 +310,8 @@ int main(int argc, char** argv){
         return -1;
     }
 
-    interface(textPp, itens, clientes);
+    while(1)
+        interface(textPp, itens, clientes);
 
     free(textPp);
     free(itens);
