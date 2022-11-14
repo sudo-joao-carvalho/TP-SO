@@ -16,6 +16,33 @@ void commandHelp(){
 
 }
 
+ptrClientes readCLientes(ptrClientes clientes, char* nome_fich){
+
+    FILE* file;
+    int i = 0;
+    file = fopen(nome_fich, "r");
+
+    if (file == NULL) {
+        printf("[ERRO] Ficheiro nao existe\n");
+        return clientes;
+    }  
+    
+    while (!feof(file)){
+        if(feof(file)){
+            break;
+        }
+
+        
+        fscanf(file, "%s %s %d", clientes[i].nome, clientes[i].password, &(clientes->saldo));
+        printf("\n%s %s %d", clientes[i].nome, clientes[i].password, clientes[i].saldo);
+        
+        i++; 
+    }
+           
+    fclose(file);
+    return clientes;
+    
+}
 
 
 ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP){
@@ -221,10 +248,15 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes){
     }else if(strcmp(initCommand, "execucao") == 0){
         textPp = communicationPipe(textPp);
     }else if(strcmp(initCommand, "utilizador") == 0){
-        loadUsersFile(usersPath);
+        int nUsers = loadUsersFile(usersPath);
 
+        clientes = realloc(clientes, nUsers * sizeof(Clientes));
+        clientes = readCLientes(clientes, usersPath);
 
-        //updateUserBalance(, int value)
+        for(int i = 0; i < nUsers; i++){
+            updateUserBalance(clientes[i].nome, clientes[i].saldo -= 1);
+        }
+        //updateUserBalance()
         return ;
     }else if(strcmp(initCommand, "itens") == 0){
         printf("Qual o nome do ficheiro que deseja ler?\n");

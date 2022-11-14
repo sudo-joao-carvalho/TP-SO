@@ -8,10 +8,12 @@ typedef struct HandlerPromotor{
     int fd[2];
 } HandlerPromotor, *ptrHandlerPromotor;
 
+ptrClientes readCLientes(ptrClientes clientes, char* nome_fich);
 ptrItens readItens(ptrItens i, char* nome_fich);
 void commandsAdministrador();
 void commandHelp();
 ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP);
+void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes);
 
 #endif
 
