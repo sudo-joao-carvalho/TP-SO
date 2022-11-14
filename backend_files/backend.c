@@ -253,10 +253,12 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes){
         clientes = readCLientes(clientes, usersPath);
 
         for(int i = 0; i < nUsers; i++){
-            //clientes[i].saldo -= 1;
             updateUserBalance(clientes[i].nome, clientes[i].saldo -= 1);
-            //printf("\n%s %s %d", clientes[i].nome, clientes[i].password, clientes[i].saldo);
+            printf("\n%s %s %d", clientes[i].nome, clientes[i].password, clientes[i].saldo);
         }
+
+        saveUsersFile(usersPath);
+
         return ;
     }else if(strcmp(initCommand, "itens") == 0){
         printf("Qual o nome do ficheiro que deseja ler?\n");
@@ -277,7 +279,7 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes){
 int main(int argc, char** argv){
 
     ptrHandlerPromotor textPp = malloc(sizeof(HandlerPromotor));
-    ptrItens itens = malloc(sizeof(Itens));
+    ptrItens itens = malloc(30 * sizeof(Itens));
     ptrClientes clientes = malloc(sizeof(Clientes));
 
     if(textPp == NULL){
@@ -293,7 +295,7 @@ int main(int argc, char** argv){
         return -1;
     }
 
-    if(itens == NULL){
+    if(clientes == NULL){
         printf("[ERRO] Memoria nao alocada\n");
         free(textPp);
         free(itens);
@@ -305,7 +307,7 @@ int main(int argc, char** argv){
 
     free(textPp);
     free(itens);
-    free(clientes);
+    //free(clientes); erro a dar free aos clientes
 
     return 0;
 
