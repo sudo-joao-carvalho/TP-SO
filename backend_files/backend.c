@@ -32,8 +32,8 @@ ptrClientes readCLientes(ptrClientes clientes, char* nome_fich){
             break;
         }
         
-        fscanf(file, "%s %s %d", clientes[i].nome, clientes[i].password, &(clientes->saldo));
-        printf("\n%s %s %d", clientes[i].nome, clientes[i].password, clientes[i].saldo);
+        fscanf(file, "%s %s %d", clientes[i].nome, clientes[i].password, &(clientes[i].saldo));
+        //printf("\n%s %s %d", clientes[i].nome, clientes[i].password, clientes[i].saldo);
         
         i++; 
     }
@@ -255,6 +255,7 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes){
         for(int i = 0; i < nUsers; i++){
             clientes[i].saldo -= 1;
             updateUserBalance(clientes[i].nome, clientes[i].saldo);
+            //printf("\n%s %s %d", clientes[i].nome, clientes[i].password, clientes[i].saldo);
         }
         return ;
     }else if(strcmp(initCommand, "itens") == 0){
