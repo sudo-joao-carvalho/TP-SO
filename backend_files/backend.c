@@ -207,14 +207,15 @@ void commandsAdministrador(){
 
 }
 
-ptrItens readItens(ptrItens i, char* nome_fich){
+ptrItens readItens(ptrItens itens, char* nome_fich){
 
+    int i = 0;
     FILE* ptr;
     ptr = fopen(nome_fich, "r");
 
     if (ptr == NULL) {
         printf("[ERRO] Ficheiro nao existe\n");
-        return i;
+        return itens;
     }  
     
     while (!feof(ptr)){
@@ -222,9 +223,10 @@ ptrItens readItens(ptrItens i, char* nome_fich){
             break;
         }
 
-        fscanf(ptr," %d %s %s %d %d %d %s %s", &(i->id), i->nome, i->categoria, &(i->preco_base), &(i->comprar_ja), &(i->tempo), i->nomeV, i->nomeC);
-        printf("\n%d %s %s %d %d %d %s %s\n", i->id, i->nome, i->categoria, i->preco_base, i->comprar_ja, i->tempo, i->nomeV, i->nomeC);
+        fscanf(ptr," %d %s %s %d %d %d %s %s", &(itens[i].id), itens[i].nome, itens[i].categoria, &(itens[i].preco_base), &(itens[i].comprar_ja), &(itens[i].tempo), itens[i].nomeV, itens[i].nomeC);
+        //printf("\n%d %s %s %d %d %d %s %s\n", i[i].id, i[i].nome, i[i].categoria, i[i].preco_base, i[i].comprar_ja, i[i].tempo, i[i].nomeV, i[i]].nomeC);
          
+        i++;
     }
            
     fclose(ptr);
