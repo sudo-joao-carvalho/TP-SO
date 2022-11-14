@@ -1,4 +1,5 @@
 #include "backend.h"
+#include "users_lib.h"
 
 //DUVIDA NOS ITENS: ao ler eles devem ser introduzimos por exemplo num array dinamico
 void commandHelp(){
@@ -15,7 +16,29 @@ void commandHelp(){
 
 }
 
+int loadUsersFile(char* pathname){
 
+    char buffer[TAM];
+    FILE *file;
+
+    file = fopen(pathname, "rb");
+
+    if (file == NULL) {
+        printf("[ERRO] Ficheiro nao existe\n");
+        return -1;
+    }  
+
+    while(!feof(file)){
+        if(feof(file))
+            break;
+        
+        fread(buffer, sizeof(buffer), 1, file);
+        printf(" %s", buffer);
+    }
+
+    return 0;
+
+}
 
 ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP){
 
@@ -210,6 +233,7 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens){
     //Leitura dos comandos 1a meta
     char initCommand[TAM];
     char nome_fich[TAM];
+    char usersPath[] = "users_lib.o";
 
     printf("\nDeseja testar que funcionalidade? <comandos> || <execuçao promotor> || <utilizador> || <itens> \n");
     scanf(" %s", initCommand);
@@ -219,13 +243,15 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens){
     }else if(strcmp(initCommand, "execucao") == 0){
         textPp = communicationPipe(textPp);
     }else if(strcmp(initCommand, "utilizador") == 0){
-        printf("\nutilizador\n");
+        loadUsersFile(usersPath);
         return ;
     }else if(strcmp(initCommand, "itens") == 0){
         printf("Qual o nome do ficheiro que deseja ler?\n");
         scanf(" %s", nome_fich);
         itens = readItens(itens, nome_fich);
         return ;
+    }else if(strcmp(initCommand, "help")){
+        commandHelp();
     }else{
         printf("\n\t[ERRO] Comando errado");
         return ;
