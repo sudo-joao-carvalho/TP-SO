@@ -224,13 +224,21 @@ ptrItens readItens(ptrItens itens, char* nome_fich){
         }
 
         fscanf(ptr," %d %s %s %d %d %d %s %s", &(itens[i].id), itens[i].nome, itens[i].categoria, &(itens[i].preco_base), &(itens[i].comprar_ja), &(itens[i].tempo), itens[i].nomeV, itens[i].nomeC);
-        //printf("\n%d %s %s %d %d %d %s %s\n", i[i].id, i[i].nome, i[i].categoria, i[i].preco_base, i[i].comprar_ja, i[i].tempo, i[i].nomeV, i[i]].nomeC);
+        //printf("\n%d %s %s %d %d %d %s %s\n", itens[i].id, itens[i].nome, itens[i].categoria, itens[i].preco_base, itens[i].comprar_ja, itens[i].tempo, itens[i].nomeV, itens[i].nomeC);
          
         i++;
     }
-           
+
+    //printf("i = %d", i);
+    printf("ola");
+
+    /*for(int j = 0; j < i; j++){
+        printf("\n%d %s %s %d %d %d %s %s\n", itens[i].id, itens[i].nome, itens[i].categoria, itens[i].preco_base, itens[i].comprar_ja, itens[i].tempo, itens[i].nomeV, itens[i].nomeC);
+    }*/
+    
+
     fclose(ptr);
-    return i;
+    return itens;
 
  }   
 
@@ -266,6 +274,11 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes){
         printf("Qual o nome do ficheiro que deseja ler?\n");
         scanf(" %s", nome_fich);
         itens = readItens(itens, nome_fich);
+
+        for(int i = 0; i < 2; i++){
+            printf("\n%d %s %s %d %d %d %s %s\n", itens[i].id, itens[i].nome, itens[i].categoria, itens[i].preco_base, itens[i].comprar_ja, itens[i].tempo, itens[i].nomeV, itens[i].nomeC);
+        }      
+
         return ;
     }else if(strcmp(initCommand, "help") == 0){
         commandHelp();
