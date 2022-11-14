@@ -16,17 +16,19 @@ void commandHelp(){
 
 }
 
-ptrClientes readCLientes(ptrClientes clientes, char* nome_fich){
+ptrClientes readCLientes(ptrClientes clientes, char* nome_fich, int nUsers){
 
     FILE* file;
     int i = 0;
     file = fopen(nome_fich, "r");
+    //int nUsers = loadUsersFile(nome_fich);
+    //ptrClientes tmp = realloc(clientes, nUsers * sizeof(Clientes));
 
     if (file == NULL) {
         printf("[ERRO] Ficheiro nao existe\n");
         return clientes;
     }  
-    
+
     while (!feof(file)){
         if(feof(file)){
             break;
@@ -37,6 +39,8 @@ ptrClientes readCLientes(ptrClientes clientes, char* nome_fich){
         
         i++; 
     }
+        
+    
            
     fclose(file);
     return clientes;
@@ -234,12 +238,11 @@ ptrItens readItens(ptrItens itens, char* nome_fich){
 
  }   
 
-void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes){
+void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes, char* usersPath, int nUsers){
 
     //Leitura dos comandos 1a meta
     char initCommand[TAM];
     char nome_fich[TAM];
-    char usersPath[] = "users.txt";
 
     printf("\nDeseja testar que funcionalidade? <comandos> || <execuçao promotor> || <utilizador> || <itens> || help\n");
     scanf(" %s", initCommand);
@@ -249,10 +252,7 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes){
     }else if(strcmp(initCommand, "execucao") == 0){
         textPp = communicationPipe(textPp);
     }else if(strcmp(initCommand, "utilizador") == 0){
-        int nUsers = loadUsersFile(usersPath);
-
-        clientes = realloc(clientes, nUsers * sizeof(Clientes));
-        clientes = readCLientes(clientes, usersPath);
+        clientes = readCLientes(clientes, usersPath, nUsers);
 
         for(int i = 0; i < nUsers; i++){
             updateUserBalance(clientes[i].nome, clientes[i].saldo -= 1);
@@ -260,7 +260,7 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes){
         }
 
         saveUsersFile(usersPath);
-
+        //free(clientes);
         return ;
     }else if(strcmp(initCommand, "itens") == 0){
         printf("Qual o nome do ficheiro que deseja ler?\n");
@@ -287,7 +287,9 @@ int main(int argc, char** argv){
 
     ptrHandlerPromotor textPp = malloc(sizeof(HandlerPromotor));
     ptrItens itens = malloc(30 * sizeof(Itens));
-    ptrClientes clientes = malloc(sizeof(Clientes));
+    char usersPath[] = "users.txt";
+    int nUsers = loadUsersFile(usersPath);
+    ptrClientes clientes = malloc(nUsers * sizeof(Clientes));
 
     if(textPp == NULL){
         printf("[ERRO] Memoria nao alocada\n");
@@ -311,7 +313,7 @@ int main(int argc, char** argv){
     }
 
     while(1)
-        interface(textPp, itens, clientes);
+        interface(textPp, itens, clientes, usersPath, nUsers);
 
     free(textPp);
     free(itens);
