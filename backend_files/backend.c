@@ -253,8 +253,8 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes){
         clientes = readCLientes(clientes, usersPath);
 
         for(int i = 0; i < nUsers; i++){
-            clientes[i].saldo -= 1;
-            updateUserBalance(clientes[i].nome, clientes[i].saldo);
+            //clientes[i].saldo -= 1;
+            updateUserBalance(clientes[i].nome, clientes[i].saldo -= 1);
             //printf("\n%s %s %d", clientes[i].nome, clientes[i].password, clientes[i].saldo);
         }
         return ;
@@ -293,10 +293,19 @@ int main(int argc, char** argv){
         return -1;
     }
 
+    if(itens == NULL){
+        printf("[ERRO] Memoria nao alocada\n");
+        free(textPp);
+        free(itens);
+        free(clientes);
+        return -1;
+    }
+
     interface(textPp, itens, clientes);
 
     free(textPp);
     free(itens);
+    free(clientes);
 
     return 0;
 
