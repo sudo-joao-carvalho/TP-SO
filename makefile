@@ -7,7 +7,7 @@ frontend:
 	@echo Ficheiros de frontend compilados!
 
 backend:
-	@${CC} backend_files/backend.c -o ../backend_files/backend
+	@${CC} backend_files/backend.c backend_files/users_lib.o -o ../backend_files/backend
 	@echo Ficheiros de backend compilados!
 
 promotor:

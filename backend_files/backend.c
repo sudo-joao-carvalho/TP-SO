@@ -31,7 +31,6 @@ ptrClientes readCLientes(ptrClientes clientes, char* nome_fich){
         if(feof(file)){
             break;
         }
-
         
         fscanf(file, "%s %s %d", clientes[i].nome, clientes[i].password, &(clientes->saldo));
         printf("\n%s %s %d", clientes[i].nome, clientes[i].password, clientes[i].saldo);
@@ -254,9 +253,9 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes){
         clientes = readCLientes(clientes, usersPath);
 
         for(int i = 0; i < nUsers; i++){
-            updateUserBalance(clientes[i].nome, clientes[i].saldo -= 1);
+            clientes[i].saldo -= 1;
+            updateUserBalance(clientes[i].nome, clientes[i].saldo);
         }
-        //updateUserBalance()
         return ;
     }else if(strcmp(initCommand, "itens") == 0){
         printf("Qual o nome do ficheiro que deseja ler?\n");
