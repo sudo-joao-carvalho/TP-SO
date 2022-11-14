@@ -1,4 +1,5 @@
 #include "frontend.h"
+#include "../general.h"
 
 void commandHelp(){
 

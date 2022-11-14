@@ -16,29 +16,7 @@ void commandHelp(){
 
 }
 
-int loadUsersFile(char* pathname){
 
-    char buffer[TAM];
-    FILE *file;
-
-    file = fopen(pathname, "rb");
-
-    if (file == NULL) {
-        printf("[ERRO] Ficheiro nao existe\n");
-        return -1;
-    }  
-
-    while(!feof(file)){
-        if(feof(file))
-            break;
-        
-        fread(buffer, sizeof(buffer), 1, file);
-        printf(" %s", buffer);
-    }
-
-    return 0;
-
-}
 
 ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP){
 
@@ -228,14 +206,14 @@ ptrItens readItens(ptrItens i, char* nome_fich){
 
  }   
 
-void interface(ptrHandlerPromotor textPp, ptrItens itens){
+void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes){
 
     //Leitura dos comandos 1a meta
     char initCommand[TAM];
     char nome_fich[TAM];
-    char usersPath[] = "users_lib.o";
+    char usersPath[] = "users.txt";
 
-    printf("\nDeseja testar que funcionalidade? <comandos> || <execuçao promotor> || <utilizador> || <itens> \n");
+    printf("\nDeseja testar que funcionalidade? <comandos> || <execuçao promotor> || <utilizador> || <itens> || help\n");
     scanf(" %s", initCommand);
 
     if(strcmp(initCommand, "comandos") == 0){
@@ -244,14 +222,18 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens){
         textPp = communicationPipe(textPp);
     }else if(strcmp(initCommand, "utilizador") == 0){
         loadUsersFile(usersPath);
+
+
+        //updateUserBalance(, int value)
         return ;
     }else if(strcmp(initCommand, "itens") == 0){
         printf("Qual o nome do ficheiro que deseja ler?\n");
         scanf(" %s", nome_fich);
         itens = readItens(itens, nome_fich);
         return ;
-    }else if(strcmp(initCommand, "help")){
+    }else if(strcmp(initCommand, "help") == 0){
         commandHelp();
+        return ;
     }else{
         printf("\n\t[ERRO] Comando errado");
         return ;
@@ -264,6 +246,7 @@ int main(int argc, char** argv){
 
     ptrHandlerPromotor textPp = malloc(sizeof(HandlerPromotor));
     ptrItens itens = malloc(sizeof(Itens));
+    ptrClientes clientes = malloc(sizeof(Clientes));
 
     if(textPp == NULL){
         printf("[ERRO] Memoria nao alocada\n");
@@ -278,7 +261,7 @@ int main(int argc, char** argv){
         return -1;
     }
 
-    interface(textPp, itens);
+    interface(textPp, itens, clientes);
 
     free(textPp);
     free(itens);

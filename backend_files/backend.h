@@ -1,4 +1,5 @@
 #include "../frontend_files/frontend.h"
+#include "../general.h"
 
 #ifndef BACKEND_H
 #define BACKEND_H
