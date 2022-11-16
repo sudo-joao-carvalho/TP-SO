@@ -21,8 +21,6 @@ ptrClientes readCLientes(ptrClientes clientes, char* nome_fich, int nUsers){
     FILE* file;
     int i = 0;
     file = fopen(nome_fich, "r");
-    //int nUsers = loadUsersFile(nome_fich);
-    //ptrClientes tmp = realloc(clientes, nUsers * sizeof(Clientes));
 
     if (file == NULL) {
         printf("[ERRO] Ficheiro nao existe\n");
@@ -48,9 +46,17 @@ ptrClientes readCLientes(ptrClientes clientes, char* nome_fich, int nUsers){
 }
 
 
-ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP){
+ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP, char* nomeFichPromotores){
 
     char msgPromotor[TAM];
+    char partOne[TAM]= "./backend_files/";
+    int sizeOne = sizeof(nomeFichPromotores);
+    int sizeTwo = sizeof(partOne);
+    int finalSize = sizeOne + sizeTwo;
+    char* finalPath = malloc(finalSize);
+    strcpy(finalPath, strcat(partOne, nomeFichPromotores));
+
+    printf("%s", finalPath);
 
     pipe(pP->fd);
 
@@ -67,8 +73,9 @@ ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP){
 
         //execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/promotor", "./promotor", NULL);
         //execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/promotor_oficial", "./promotor_oficial", NULL);
-        execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/black_friday", "./black_fridayl", NULL);
-        exit(0);
+        //execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/black_friday", "./black_friday", NULL);
+        execl(finalPath, "./black_friday", NULL);
+        //exit(0);
     }else if(id > 0){
         read(pP->fd[0], msgPromotor, sizeof(msgPromotor)); //lê o que recebe do printf do promotor atraves do pipe
         close(pP->fd[1]); //fecha a ponta do pipe onde foi escrito
@@ -238,36 +245,61 @@ ptrItens readItens(ptrItens itens, char* nome_fich){
 
  }   
 
-void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes, char* usersPath, int nUsers){
+void interface(ptrHandlerPromotor textPp, ptrItens itens/*, ptrClientes clientes, char* usersPath, int nUsers*/){
 
     //Leitura dos comandos 1a meta
     char initCommand[TAM];
-    char nome_fich[TAM];
+    char nomeFichItens[TAM];
+    char nomeFichPromotores[TAM];
+    char nomeFichUsers[TAM];
 
     fflush(stdin);
 
-    printf("\nDeseja testar que funcionalidade? <comandos> || <execuçao promotor> || <utilizador> || <itens> || help\n");
+    printf("\nDeseja testar que funcionalidade? <comandos> || <execuçao promotor> || <utilizador> || <itens> || help || exit\n");
     scanf(" %s", initCommand);
 
     if(strcmp(initCommand, "comandos") == 0){
         commandsAdministrador();
     }else if(strcmp(initCommand, "execucao") == 0){
-        textPp = communicationPipe(textPp);
+        fflush(stdin);
+        printf("\nQual o nome do ficheiro de promotores que pretende executar? \t [black_friday // promotor_oficial]\n");
+        fgets(nomeFichPromotores, TAM, stdin);
+
+        if(strcmp(nomeFichPromotores, "black_friday\n") == 0 || strcmp(nomeFichPromotores, "promotor_oficial\n") == 0){
+            textPp = communicationPipe(textPp, nomeFichPromotores);
+        }else{
+            printf("[ERRO] Nome do ficheiro de promotores errado\n");
+            return;
+        }
+            
     }else if(strcmp(initCommand, "utilizador") == 0){
-        clientes = readCLientes(clientes, usersPath, nUsers);
+        fflush(stdin);
+        printf("\nQual o nome do ficheiro de utilizadores que pretende executar? \n");
+        scanf(" %s", nomeFichUsers);
+
+        int nUsers = loadUsersFile(nomeFichUsers);
+        ptrClientes clientes = malloc(nUsers * sizeof(Clientes));
+
+        if(clientes == NULL){
+            printf("[ERRO] Memoria nao alocada\n");  
+            free(clientes);
+            return ;
+        }
+
+        clientes = readCLientes(clientes, nomeFichUsers, nUsers);
 
         for(int i = 0; i < nUsers; i++){
             updateUserBalance(clientes[i].nome, clientes[i].saldo -= 1);
             printf("\n%s %s %d", clientes[i].nome, clientes[i].password, clientes[i].saldo);
         }
 
-        saveUsersFile(usersPath);
-        //free(clientes);
+        saveUsersFile(nomeFichUsers);
+        free(clientes);
         return ;
     }else if(strcmp(initCommand, "itens") == 0){
         printf("Qual o nome do ficheiro que deseja ler?\n");
-        scanf(" %s", nome_fich);
-        itens = readItens(itens, nome_fich);
+        scanf(" %s", nomeFichItens);
+        itens = readItens(itens, nomeFichItens);
 
         for(int i = 0; i < 2; i++){
             printf("\n%d %s %s %d %d %d %s %s\n", itens[i].id, itens[i].nome, itens[i].categoria, itens[i].preco_base, itens[i].comprar_ja, itens[i].tempo, itens[i].nomeV, itens[i].nomeC);
@@ -277,6 +309,8 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrClientes clientes, 
     }else if(strcmp(initCommand, "help") == 0){
         commandHelp();
         return ;
+    }else if(strcmp(initCommand, "exit") == 0){
+        exit(0);
     }else{
         printf("\n\t[ERRO] Comando errado");
         return ;
@@ -289,9 +323,7 @@ int main(int argc, char** argv){
 
     ptrHandlerPromotor textPp = malloc(sizeof(HandlerPromotor));
     ptrItens itens = malloc(30 * sizeof(Itens));
-    char usersPath[] = "users.txt";
-    int nUsers = loadUsersFile(usersPath);
-    ptrClientes clientes = malloc(nUsers * sizeof(Clientes));
+    //char usersPath[] = "users.txt";
 
     if(textPp == NULL){
         printf("[ERRO] Memoria nao alocada\n");
@@ -306,16 +338,8 @@ int main(int argc, char** argv){
         return -1;
     }
 
-    if(clientes == NULL){
-        printf("[ERRO] Memoria nao alocada\n");
-        free(textPp);
-        free(itens);
-        free(clientes);
-        return -1;
-    }
-
     while(1)
-        interface(textPp, itens, clientes, usersPath, nUsers);
+        interface(textPp, itens);
 
     free(textPp);
     free(itens);
