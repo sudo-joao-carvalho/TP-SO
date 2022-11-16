@@ -49,14 +49,25 @@ ptrClientes readCLientes(ptrClientes clientes, char* nome_fich, int nUsers){
 ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP, char* nomeFichPromotores){
 
     char msgPromotor[TAM];
-    char partOne[TAM]= "./backend_files/";
-    int sizeOne = sizeof(nomeFichPromotores);
-    int sizeTwo = sizeof(partOne);
-    int finalSize = sizeOne + sizeTwo;
-    char* finalPath = malloc(finalSize);
-    strcpy(finalPath, strcat(partOne, nomeFichPromotores));
+    char partOne[100];
+    char ff[TAM] = "./";
 
-    printf("%s", finalPath);
+    chdir("..");
+    chdir("promotor_files");
+    getwd(partOne);
+
+    int sizeOne = sizeof(partOne);
+    int sizeTwo = sizeof(nomeFichPromotores);
+    int finalSize = sizeof(partOne) + sizeof(nomeFichPromotores) + 1;
+
+    char* firstPath = malloc(sizeof(partOne) + 1);
+    strcpy(firstPath, strcat(partOne, "/"));
+
+    char* finalPath = malloc(finalSize);
+    strcpy(finalPath, strcat(firstPath, nomeFichPromotores));
+
+    strcat(ff, nomeFichPromotores);
+    //printf("{%s}", ff);
 
     pipe(pP->fd);
 
@@ -70,11 +81,10 @@ ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP, char* nomeFichPromot
         dup(pP->fd[1]); //duplica o stdout
         close(pP->fd[0]); //fecha o antigo
         close(pP->fd[1]); // fecha a outra ponta do pipe
-
         //execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/promotor", "./promotor", NULL);
         //execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/promotor_oficial", "./promotor_oficial", NULL);
         //execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/black_friday", "./black_friday", NULL);
-        execl(finalPath, "./black_friday", NULL);
+        execl(finalPath, ff, NULL);
         //exit(0);
     }else if(id > 0){
         read(pP->fd[0], msgPromotor, sizeof(msgPromotor)); //lê o que recebe do printf do promotor atraves do pipe
@@ -82,6 +92,9 @@ ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP, char* nomeFichPromot
         printf("%s", msgPromotor); //printa a mensagem do promotor
         return 0;
     }
+
+    free(firstPath);
+    free(finalPath);
 
     return pP;
 }
@@ -265,7 +278,9 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens/*, ptrClientes clientes
         printf("\nQual o nome do ficheiro de promotores que pretende executar? \t [black_friday // promotor_oficial]\n");
         fgets(nomeFichPromotores, TAM, stdin);
 
-        if(strcmp(nomeFichPromotores, "black_friday\n") == 0 || strcmp(nomeFichPromotores, "promotor_oficial\n") == 0){
+        nomeFichPromotores[strcspn(nomeFichPromotores, "\n")] = '\0'; //retirar /n smp que se usa fgets
+
+        if(strcmp(nomeFichPromotores, "black_friday") == 0 || strcmp(nomeFichPromotores, "promotor_oficial") == 0){
             textPp = communicationPipe(textPp, nomeFichPromotores);
         }else{
             printf("[ERRO] Nome do ficheiro de promotores errado\n");
@@ -323,7 +338,6 @@ int main(int argc, char** argv){
 
     ptrHandlerPromotor textPp = malloc(sizeof(HandlerPromotor));
     ptrItens itens = malloc(30 * sizeof(Itens));
-    //char usersPath[] = "users.txt";
 
     if(textPp == NULL){
         printf("[ERRO] Memoria nao alocada\n");
@@ -348,3 +362,6 @@ int main(int argc, char** argv){
     return 0;
 
 }
+
+//Duvidas alocar o espaco apra os cleintes dentro da verificacao se o comando for utilizador e no caso dos itens isso n acontece(sera que ha problema mais apra a frente)
+//como fazer o execl noutros pcs devido ao path dos ficheiros
