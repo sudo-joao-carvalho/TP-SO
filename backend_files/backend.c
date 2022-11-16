@@ -16,7 +16,7 @@ void commandHelp(){
 
 }
 
-ptrClientes readCLientes(ptrClientes clientes, char* nome_fich, int nUsers){
+/*ptrClientes readCLientes(ptrClientes clientes, char* nome_fich, int nUsers){
 
     FILE* file;
     int i = 0;
@@ -43,29 +43,17 @@ ptrClientes readCLientes(ptrClientes clientes, char* nome_fich, int nUsers){
     fclose(file);
     return clientes;
     
-}
-
+}*/
 
 ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP, char* nomeFichPromotores){
 
     char msgPromotor[TAM];
-    char partOne[100];
-    char ff[TAM] = "./";
+    char path[100];
+    char ff[TAM] = "../promotor_files/";
+    char fff[TAM] = "./";
 
-    chdir("..");
-    chdir("promotor_files");
-    getwd(partOne);
-
-    int sizeOne = sizeof(partOne);
-    int sizeTwo = sizeof(nomeFichPromotores);
-    //int finalSize = sizeof(partOne) + sizeof(nomeFichPromotores) + 1;
-
-    char* finalPath = malloc(sizeof(partOne) + 1);
-    strcpy(finalPath, strcat(partOne, "/"));
-
-    strcat(finalPath, nomeFichPromotores);
-    strcat(ff, nomeFichPromotores);
-    //printf("{%s}", ff);
+    strcpy(path, strcat(ff, nomeFichPromotores));
+    strcat(fff, nomeFichPromotores);
 
     pipe(pP->fd);
 
@@ -79,20 +67,14 @@ ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP, char* nomeFichPromot
         dup(pP->fd[1]); //duplica o stdout
         close(pP->fd[0]); //fecha o antigo
         close(pP->fd[1]); // fecha a outra ponta do pipe
-        //execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/promotor", "./promotor", NULL);
-        //execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/promotor_oficial", "./promotor_oficial", NULL);
-        //execl("/Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/promotor_files/black_friday", "./black_friday", NULL);
-        execl(finalPath, ff, NULL);
-        //exit(0);
+        
+        execl(path, fff, NULL);
     }else if(id > 0){
         read(pP->fd[0], msgPromotor, sizeof(msgPromotor)); //lê o que recebe do printf do promotor atraves do pipe
         close(pP->fd[1]); //fecha a ponta do pipe onde foi escrito
         printf("%s", msgPromotor); //printa a mensagem do promotor
         return 0;
     }
-
-    free(finalPath);
-
 
     return pP;
 }
@@ -291,23 +273,25 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens/*, ptrClientes clientes
         scanf(" %s", nomeFichUsers);
 
         int nUsers = loadUsersFile(nomeFichUsers);
-        ptrClientes clientes = malloc(nUsers * sizeof(Clientes));
+        /*ptrClientes clientes = malloc(nUsers * sizeof(Clientes));
 
         if(clientes == NULL){
             printf("[ERRO] Memoria nao alocada\n");  
             free(clientes);
             return ;
-        }
+        }*/
 
-        clientes = readCLientes(clientes, nomeFichUsers, nUsers);
+        printf("%d", nUsers);
+        //loadUsersFile(nomeFichUsers);
+        //clientes = readCLientes(clientes, nomeFichUsers, nUsers);
 
-        for(int i = 0; i < nUsers; i++){
+        /*for(int i = 0; i < nUsers; i++){
             updateUserBalance(clientes[i].nome, clientes[i].saldo -= 1);
             printf("\n%s %s %d", clientes[i].nome, clientes[i].password, clientes[i].saldo);
-        }
+        }*/
 
-        saveUsersFile(nomeFichUsers);
-        free(clientes);
+        //saveUsersFile(nomeFichUsers);
+        //free(clientes);
         return ;
     }else if(strcmp(initCommand, "itens") == 0){
         printf("Qual o nome do ficheiro que deseja ler?\n");
