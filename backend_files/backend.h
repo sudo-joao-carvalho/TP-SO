@@ -13,7 +13,7 @@ ptrItens readItens(ptrItens i, char* nome_fich);
 void commandsAdministrador();
 void commandHelp();
 ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP, char* nomeFichPromotores);
-void interface(ptrHandlerPromotor textPp, ptrItens itens/*, ptrClientes clientes, char* usersPath, int nUsers*/);
+void interface(ptrHandlerPromotor textPp, ptrItens itens);
 
 #endif
 

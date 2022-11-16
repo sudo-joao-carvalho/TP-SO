@@ -238,7 +238,7 @@ ptrItens readItens(ptrItens itens, char* nome_fich){
 
  }   
 
-void interface(ptrHandlerPromotor textPp, ptrItens itens/*, ptrClientes clientes, char* usersPath, int nUsers*/){
+void interface(ptrHandlerPromotor textPp, ptrItens itens){
 
     //Leitura dos comandos 1a meta
     char initCommand[TAM];
