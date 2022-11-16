@@ -60,12 +60,10 @@ ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP, char* nomeFichPromot
     int sizeTwo = sizeof(nomeFichPromotores);
     int finalSize = sizeof(partOne) + sizeof(nomeFichPromotores) + 1;
 
-    char* firstPath = malloc(sizeof(partOne) + 1);
-    strcpy(firstPath, strcat(partOne, "/"));
+    char* finalPath = malloc(sizeof(partOne) + 1);
+    strcpy(finalPath, strcat(partOne, "/"));
 
-    char* finalPath = malloc(finalSize);
-    strcpy(finalPath, strcat(firstPath, nomeFichPromotores));
-
+    strcat(finalPath, nomeFichPromotores);
     strcat(ff, nomeFichPromotores);
     //printf("{%s}", ff);
 
@@ -93,7 +91,6 @@ ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP, char* nomeFichPromot
         return 0;
     }
 
-    free(firstPath);
     free(finalPath);
 
     return pP;
