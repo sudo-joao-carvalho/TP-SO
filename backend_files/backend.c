@@ -74,6 +74,9 @@ ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP, char* nomeFichPromot
         close(pP->fd[1]); //fecha a ponta do pipe onde foi escrito
         printf("%s", msgPromotor); //printa a mensagem do promotor
 
+        /*union sigval xpto;
+        sigqueue(id, SIGUSR1,xpto);*/
+
         //working
         kill(id, SIGKILL);
         wait(&id);
