@@ -74,13 +74,9 @@ ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP, char* nomeFichPromot
         close(pP->fd[1]); //fecha a ponta do pipe onde foi escrito
         printf("%s", msgPromotor); //printa a mensagem do promotor
 
-        union sigval xpto;
-        sigqueue(id, SIGKILL, xpto);
-        //wait(&id);
-
         //working
-        /*kill(id, SIGKILL);
-        wait(&id);*/
+        kill(id, SIGKILL);
+        wait(&id);
 
         return 0;
     }
@@ -258,12 +254,13 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens){
     fflush(stdin);
 
     printf("\nDeseja testar que funcionalidade? <comandos> || <execuçao promotor> || <utilizador> || <itens> || help || exit\n");
-    scanf(" %s", initCommand);
+    fgets(initCommand, TAM, stdin);
+    initCommand[strcspn(initCommand, "\n")] = '\0';
 
     if(strcmp(initCommand, "comandos") == 0){
         commandsAdministrador();
-    }else if(strcmp(initCommand, "execucao") == 0){
-        fflush(stdin);
+    }else if(strcmp(initCommand, "execucao promotor") == 0){
+        //fflush(stdin);
         printf("\nQual o nome do ficheiro de promotores que pretende executar? \t [black_friday // promotor_oficial]\n");
         fgets(nomeFichPromotores, TAM, stdin);
 
