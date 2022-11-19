@@ -269,10 +269,54 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens){
             
     }else if(strcmp(initCommand, "utilizador") == 0){
         fflush(stdin);
+
+        ptrClientes clientes;
+
         printf("\nQual o nome do ficheiro de utilizadores que pretende executar? \n");
         scanf(" %s", nomeFichUsers);
 
         int nUsers = loadUsersFile(nomeFichUsers);
+        clientes = malloc(nUsers * sizeof(Clientes));
+
+        for(int i = 0; i < nUsers; i++){
+            printf("Insira o username: ");
+            scanf(" %s", clientes[i].nome);
+            printf("Insira uma password: ");
+            scanf(" %s", clientes[i].password);
+        }
+
+        if(nUsers > 0){
+            printf("Ficheiro lido com sucesso\n");
+        }else{
+            printf("[ERRO] Erro ao ler o ficheiro");
+            return ;
+        }
+
+        if(clientes == NULL){
+            printf("[ERRO] Memoria nao alocada");
+            free(clientes);
+            return ;
+        }
+
+        for(int i = 0; i < nUsers; i++){
+            if(isUserValid(clientes[i].nome, clientes[i].password) == 0){
+                printf("[ERRO] Utilizador nao existe/password invalida\n");
+            }else if(isUserValid(clientes[i].nome, clientes[i].password) == 1){
+                printf("Usuário Valido\n");
+
+                clientes[i].saldo = getUserBalance(clientes[i].nome);
+                clientes[i].saldo -= 1;
+                updateUserBalance(clientes[i].nome, clientes[i].saldo);
+
+                saveUsersFile(nomeFichUsers);
+            }else if(isUserValid(clientes[i].nome, clientes[i].password) == -1){
+                printf("[ERRO]");
+                return ;
+            }
+        }
+
+
+
         /*ptrClientes clientes = malloc(nUsers * sizeof(Clientes));
 
         if(clientes == NULL){
@@ -281,7 +325,7 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens){
             return ;
         }*/
 
-        printf("%d", nUsers);
+        //printf("%d", nUsers);
         //loadUsersFile(nomeFichUsers);
         //clientes = readCLientes(clientes, nomeFichUsers, nUsers);
 
