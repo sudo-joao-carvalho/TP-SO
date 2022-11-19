@@ -260,7 +260,6 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens){
     if(strcmp(initCommand, "comandos") == 0){
         commandsAdministrador();
     }else if(strcmp(initCommand, "execucao promotor") == 0){
-        //fflush(stdin);
         printf("\nQual o nome do ficheiro de promotores que pretende executar? \t [black_friday // promotor_oficial]\n");
         fgets(nomeFichPromotores, TAM, stdin);
 
