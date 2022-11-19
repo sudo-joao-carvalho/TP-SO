@@ -73,6 +73,15 @@ ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP, char* nomeFichPromot
         read(pP->fd[0], msgPromotor, sizeof(msgPromotor)); //lê o que recebe do printf do promotor atraves do pipe
         close(pP->fd[1]); //fecha a ponta do pipe onde foi escrito
         printf("%s", msgPromotor); //printa a mensagem do promotor
+
+        union sigval xpto;
+        sigqueue(id, SIGKILL, xpto);
+        //wait(&id);
+
+        //working
+        /*kill(id, SIGKILL);
+        wait(&id);*/
+
         return 0;
     }
 
@@ -309,33 +318,14 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens){
                 updateUserBalance(clientes[i].nome, clientes[i].saldo);
 
                 saveUsersFile(nomeFichUsers);
+
+                free(clientes);
             }else if(isUserValid(clientes[i].nome, clientes[i].password) == -1){
                 printf("[ERRO]");
                 return ;
             }
         }
 
-
-
-        /*ptrClientes clientes = malloc(nUsers * sizeof(Clientes));
-
-        if(clientes == NULL){
-            printf("[ERRO] Memoria nao alocada\n");  
-            free(clientes);
-            return ;
-        }*/
-
-        //printf("%d", nUsers);
-        //loadUsersFile(nomeFichUsers);
-        //clientes = readCLientes(clientes, nomeFichUsers, nUsers);
-
-        /*for(int i = 0; i < nUsers; i++){
-            updateUserBalance(clientes[i].nome, clientes[i].saldo -= 1);
-            printf("\n%s %s %d", clientes[i].nome, clientes[i].password, clientes[i].saldo);
-        }*/
-
-        //saveUsersFile(nomeFichUsers);
-        //free(clientes);
         return ;
     }else if(strcmp(initCommand, "itens") == 0){
         printf("Qual o nome do ficheiro que deseja ler?\n");
