@@ -19,7 +19,7 @@ void commandHelp(){
 
 }
 
-bool readCommands(){
+char* readCommands(char* CommandM){
 
     char command[TAM];
     char firstCommand[10];
@@ -55,7 +55,9 @@ bool readCommands(){
             printf("[FORMATO] sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>\n");
         }
 
-        return true;
+        CommandM = firstCommand;
+
+        return CommandM;
 
     }else if(strcmp(firstCommand, "list") == 0){
 
@@ -70,7 +72,9 @@ bool readCommands(){
             printf("[FORMATO] list\n");
         }
 
-        return true;
+        CommandM = firstCommand;
+
+        return CommandM;
 
     }else if(strcmp(firstCommand, "licat") == 0){
 
@@ -85,7 +89,9 @@ bool readCommands(){
             printf("[FORMATO] licat <nome-categoria\n");
         }
 
-        return true;
+        CommandM = firstCommand;
+
+        return CommandM;
 
     }else if(strcmp(firstCommand, "lisel") == 0){
             
@@ -100,7 +106,9 @@ bool readCommands(){
             printf("[FORMATO] lisel <username do vendedor>\n");
         }
 
-        return true;
+        CommandM = firstCommand;
+
+        return CommandM;
 
     }else if(strcmp(firstCommand, "lival") == 0){
             
@@ -115,7 +123,9 @@ bool readCommands(){
             printf("[FORMATO] lival <preço-máximo>\n");
         }
 
-        return true;
+        CommandM = firstCommand;
+
+        return CommandM;
 
     }else if(strcmp(firstCommand, "litime") == 0){
             
@@ -130,7 +140,9 @@ bool readCommands(){
             printf("[FORMATO] litime <hora-em-segundos>\n");
         }
           
-        return true;
+        CommandM = firstCommand;
+
+        return CommandM;
 
     }else if(strcmp(firstCommand, "time") == 0){
             
@@ -145,7 +157,9 @@ bool readCommands(){
             printf("[FORMATO] time\n");
         }
 
-        return true;
+        CommandM = firstCommand;
+
+        return CommandM;
 
     }else if(strcmp(firstCommand, "buy") == 0){
         
@@ -160,7 +174,9 @@ bool readCommands(){
             printf("[FORMATO] buy <id> <valor>\n");
         }
 
-        return true;
+        CommandM = firstCommand;
+
+        return CommandM;
 
     }else if(strcmp(firstCommand, "cash") == 0){
 
@@ -175,7 +191,9 @@ bool readCommands(){
             printf("[FORMATO] cash\n");
         }
 
-        return true;
+        CommandM = firstCommand;
+
+        return CommandM;
 
     }else if(strcmp(firstCommand, "add") == 0){
             
@@ -190,7 +208,9 @@ bool readCommands(){
             printf("[FORMATO] add <valor>\n");
         }
 
-        return true;
+        CommandM = firstCommand;
+
+        return CommandM;
 
     }else if(strcmp(firstCommand, "help") == 0){
 
@@ -205,7 +225,9 @@ bool readCommands(){
             printf("[FORMATO] help\n");
         }
 
-        return false;
+        CommandM = firstCommand;
+
+        return CommandM;
 
     }else if(strcmp(firstCommand, "exit") == 0){
 
@@ -220,11 +242,13 @@ bool readCommands(){
             printf("[FORMATO] exit\n");
         }
 
-        return false;
+        CommandM = firstCommand;
+
+        return CommandM;
             
     }else{
         printf("[ERRO] Comando invalido\n\n");
-        return true;
+        return "Comando Invalido";
     }
 
 }
@@ -234,6 +258,7 @@ int main(int argc, char** argv){
     char* user = argv[1];
     char* pass = argv[2];
     ptrClientes client = malloc(sizeof(Clientes));
+    char* command;
 
     if(argc < 3){
         printf("[ERRO] Numero de comandos inseridos invalido\n");
@@ -250,9 +275,13 @@ int main(int argc, char** argv){
         strcpy(client->nome, user);
         strcpy(client->password, pass);
 
-        if(readCommands() == false) return 0;
-        //while(1)
-        //    if(lerCommands() == false) return 0;
+        while(1){
+            command = readCommands(command);
+
+            if(strcmp(command, "exit") == 0){
+                break;
+            }
+        }
 
     }
 

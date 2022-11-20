@@ -8,11 +8,11 @@ typedef struct HandlerPromotor{
     int fd[2];
 } HandlerPromotor, *ptrHandlerPromotor;
 
-ptrAmbientVars getAmbientVariables(ptrAmbientVars aVars);
-ptrClientes readCLientes(ptrClientes clientes, ptrAmbientVars aVars, int nUsers);
-ptrItens readItens(ptrItens i, ptrAmbientVars aVars);
-void commandsAdministrador();
 void commandHelp();
+void commandsAdministrador();
+ptrAmbientVars getAmbientVariables(ptrAmbientVars aVars);
+//ptrClientes readCLientes(ptrClientes clientes, ptrAmbientVars aVars, int nUsers);
+ptrItens readItens(ptrItens i, ptrAmbientVars aVars);
 ptrHandlerPromotor openPromoter(ptrHandlerPromotor pP, ptrAmbientVars aVars);
 void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars);
 

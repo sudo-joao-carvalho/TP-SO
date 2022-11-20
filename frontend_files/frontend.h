@@ -1,8 +1,7 @@
-#include <stdbool.h>
 #ifndef FRONTEND_H
 #define FRONTEND_H
 
-bool readCommands();
+char* readCommands(char* commandM);
 void commandHelp();
 
 #endif

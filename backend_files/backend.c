@@ -1,7 +1,6 @@
 #include "backend.h"
 #include "users_lib.h"
 
-//DUVIDA NOS ITENS: ao ler eles devem ser introduzimos por exemplo num array dinamico
 void commandHelp(){
 
     printf("\n\n******************  Admin. Commands List  ******************\n\n");
@@ -14,59 +13,6 @@ void commandHelp(){
     printf("--> help\n");
     printf("--> close\n");
 
-}
-
-ptrAmbientVars getAmbientVariables(ptrAmbientVars aVars){
-
-    aVars->FPROMOTERS = getenv("FPROMOTERS");
-    aVars->FUSERS = getenv("FUSERS");
-    aVars->FITEMS = getenv("FITEMS");
-
-    return aVars;
-
-}
-
-
-ptrHandlerPromotor openPromoter(ptrHandlerPromotor pP, ptrAmbientVars aVars){
-
-    char msgPromotor[TAM];
-    char path[100];
-    char ff[TAM] = "../promotor_files/";
-    char fff[TAM] = "./";
-
-    strcpy(path, strcat(ff, aVars->FPROMOTERS));
-    strcat(fff, aVars->FPROMOTERS);
-
-    pipe(pP->fd);
-
-    int id = fork();
-
-    if(id < 0){
-        printf("[ERRO] Promotor nao foi criado com sucesso\n");
-        return NULL;
-    }else if(id == 0){
-        close(1); //fecha o stdout no file descriptor
-        dup(pP->fd[1]); //duplica o stdout
-        close(pP->fd[0]); //fecha o antigo
-        close(pP->fd[1]); // fecha a outra ponta do pipe
-        
-        execl(path, fff, NULL);
-    }else if(id > 0){
-        read(pP->fd[0], msgPromotor, sizeof(msgPromotor)); //lê o que recebe do printf do promotor atraves do pipe
-        close(pP->fd[1]); //fecha a ponta do pipe onde foi escrito
-        printf("%s", msgPromotor); //printa a mensagem do promotor
-
-        /*union sigval xpto;
-        sigqueue(id, SIGUSR1, xpto);*/
-
-        //working
-        kill(id, SIGKILL);
-        wait(&id);
-
-        return 0;
-    }
-
-    return pP;
 }
 
 void commandsAdministrador(){
@@ -201,6 +147,16 @@ void commandsAdministrador(){
 
 }
 
+ptrAmbientVars getAmbientVariables(ptrAmbientVars aVars){
+
+    aVars->FPROMOTERS = getenv("FPROMOTERS");
+    aVars->FUSERS = getenv("FUSERS");
+    aVars->FITEMS = getenv("FITEMS");
+
+    return aVars;
+
+}
+
 ptrItens readItens(ptrItens itens, ptrAmbientVars aVars){
 
     int i = 0;
@@ -218,7 +174,6 @@ ptrItens readItens(ptrItens itens, ptrAmbientVars aVars){
         }
 
         fscanf(ptr," %d %s %s %d %d %d %s %s", &(itens[i].id), itens[i].nome, itens[i].categoria, &(itens[i].preco_base), &(itens[i].comprar_ja), &(itens[i].tempo), itens[i].nomeV, itens[i].nomeC);
-        //printf("\n%d %s %s %d %d %d %s %s\n", itens[i].id, itens[i].nome, itens[i].categoria, itens[i].preco_base, itens[i].comprar_ja, itens[i].tempo, itens[i].nomeV, itens[i].nomeC);
          
         i++;
     }
@@ -227,6 +182,48 @@ ptrItens readItens(ptrItens itens, ptrAmbientVars aVars){
     return itens;
 
  }   
+
+ptrHandlerPromotor openPromoter(ptrHandlerPromotor pP, ptrAmbientVars aVars){
+
+    char msgPromotor[TAM];
+    char path[100];
+    char ff[TAM] = "../promotor_files/";
+    char fff[TAM] = "./";
+
+    strcpy(path, strcat(ff, aVars->FPROMOTERS));
+    strcat(fff, aVars->FPROMOTERS);
+
+    pipe(pP->fd);
+
+    int id = fork();
+
+    if(id < 0){
+        printf("[ERRO] Promotor nao foi criado com sucesso\n");
+        return NULL;
+    }else if(id == 0){
+        close(1); //fecha o stdout no file descriptor
+        dup(pP->fd[1]); //duplica o stdout
+        close(pP->fd[0]); //fecha o antigo
+        close(pP->fd[1]); // fecha a outra ponta do pipe
+        
+        execl(path, fff, NULL);
+    }else if(id > 0){
+        read(pP->fd[0], msgPromotor, sizeof(msgPromotor)); //lê o que recebe do printf do promotor atraves do pipe
+        close(pP->fd[1]); //fecha a ponta do pipe onde foi escrito
+        printf("%s", msgPromotor); //printa a mensagem do promotor
+
+        /*union sigval xpto;
+        sigqueue(id, SIGUSR1, xpto);*/
+
+        //working
+        kill(id, SIGKILL);
+        wait(&id);
+
+        return 0;
+    }
+
+    return pP;
+}
 
 void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
 
@@ -242,10 +239,6 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
     if(strcmp(initCommand, "comandos") == 0){
         commandsAdministrador();
     }else if(strcmp(initCommand, "execucao promotor") == 0){
-        //printf("\nQual o nome do ficheiro de promotores que pretende executar? \t [black_friday // promotor_oficial]\n");
-        //fgets(FPROMOTERS, TAM, stdin);
-
-        //FPROMOTERS[strcspn(FPROMOTERS, "\n")] = '\0'; //retirar /n smp que se usa fgets
 
         if(strcmp(aVars->FPROMOTERS, "black_friday") == 0 || strcmp(aVars->FPROMOTERS, "promotor_oficial") == 0){
             textPp = openPromoter(textPp, aVars);
@@ -258,9 +251,6 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
         fflush(stdin);
 
         ptrClientes clientes;
-
-        //printf("\nQual o nome do ficheiro de utilizadores que pretende executar? \n");
-        //scanf(" %s", FUSERS);
 
         int nUsers = loadUsersFile(aVars->FUSERS);
         printf("[nUsers] %d", nUsers);
@@ -303,15 +293,13 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
                 return ;
             }
         }
-        
+
         free(clientes);
         return ;
     }else if(strcmp(initCommand, "itens") == 0){
-        //printf("Qual o nome do ficheiro que deseja ler?\n");
-        //scanf(" %s", FITEMS);
         itens = readItens(itens, aVars);
 
-        for(int i = 0; i < 2; i++){
+        for(int i = 0; itens[i].id != '\0'; i++){
             printf("\n%d %s %s %d %d %d %s %s\n", itens[i].id, itens[i].nome, itens[i].categoria, itens[i].preco_base, itens[i].comprar_ja, itens[i].tempo, itens[i].nomeV, itens[i].nomeC);
         }
 
@@ -334,9 +322,6 @@ int main(int argc, char** argv){
     ptrHandlerPromotor textPp = malloc(sizeof(HandlerPromotor));
     ptrItens itens = malloc(30 * sizeof(Itens));
     ptrAmbientVars aVars = malloc(sizeof(ambientVars));
-    //char* FPROMOTERS;
-    //char* FUSERS;
-    //char* FITEMS;
 
     if(textPp == NULL){
         printf("[ERRO] Memoria nao alocada\n");
