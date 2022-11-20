@@ -11,7 +11,6 @@ typedef struct HandlerPromotor{
 void commandHelp();
 void commandsAdministrador();
 ptrAmbientVars getAmbientVariables(ptrAmbientVars aVars);
-//ptrClientes readCLientes(ptrClientes clientes, ptrAmbientVars aVars, int nUsers);
 ptrItens readItens(ptrItens i, ptrAmbientVars aVars);
 ptrHandlerPromotor openPromoter(ptrHandlerPromotor pP, ptrAmbientVars aVars);
 void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars);
