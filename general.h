@@ -35,3 +35,9 @@ typedef struct Itens
     char nomeV[TAM];
     char nomeC[TAM];
 } Itens, *ptrItens;
+
+typedef struct ambientVars{
+    char* FPROMOTERS;
+    char* FUSERS;
+    char* FITEMS;
+}ambientVars, *ptrAmbientVars;

@@ -16,44 +16,26 @@ void commandHelp(){
 
 }
 
-/*ptrClientes readCLientes(ptrClientes clientes, char* nome_fich, int nUsers){
+ptrAmbientVars getAmbientVariables(ptrAmbientVars aVars){
 
-    FILE* file;
-    int i = 0;
-    file = fopen(nome_fich, "r");
+    aVars->FPROMOTERS = getenv("FPROMOTERS");
+    aVars->FUSERS = getenv("FUSERS");
+    aVars->FITEMS = getenv("FITEMS");
 
-    if (file == NULL) {
-        printf("[ERRO] Ficheiro nao existe\n");
-        return clientes;
-    }  
+    return aVars;
 
-    while (!feof(file)){
-        if(feof(file)){
-            break;
-        }
-        
-        fscanf(file, "%s %s %d", clientes[i].nome, clientes[i].password, &(clientes[i].saldo));
-        //printf("\n%s %s %d", clientes[i].nome, clientes[i].password, clientes[i].saldo);
-        
-        i++; 
-    }
-        
-    
-           
-    fclose(file);
-    return clientes;
-    
-}*/
+}
 
-ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP, char* nomeFichPromotores){
+
+ptrHandlerPromotor openPromoter(ptrHandlerPromotor pP, ptrAmbientVars aVars){
 
     char msgPromotor[TAM];
     char path[100];
     char ff[TAM] = "../promotor_files/";
     char fff[TAM] = "./";
 
-    strcpy(path, strcat(ff, nomeFichPromotores));
-    strcat(fff, nomeFichPromotores);
+    strcpy(path, strcat(ff, aVars->FPROMOTERS));
+    strcat(fff, aVars->FPROMOTERS);
 
     pipe(pP->fd);
 
@@ -75,7 +57,7 @@ ptrHandlerPromotor communicationPipe(ptrHandlerPromotor pP, char* nomeFichPromot
         printf("%s", msgPromotor); //printa a mensagem do promotor
 
         /*union sigval xpto;
-        sigqueue(id, SIGUSR1,xpto);*/
+        sigqueue(id, SIGUSR1, xpto);*/
 
         //working
         kill(id, SIGKILL);
@@ -219,11 +201,11 @@ void commandsAdministrador(){
 
 }
 
-ptrItens readItens(ptrItens itens, char* nome_fich){
+ptrItens readItens(ptrItens itens, ptrAmbientVars aVars){
 
     int i = 0;
     FILE* ptr;
-    ptr = fopen(nome_fich, "r");
+    ptr = fopen(aVars->FITEMS, "r");
 
     if (ptr == NULL) {
         printf("[ERRO] Ficheiro nao existe\n");
@@ -246,13 +228,10 @@ ptrItens readItens(ptrItens itens, char* nome_fich){
 
  }   
 
-void interface(ptrHandlerPromotor textPp, ptrItens itens){
+void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
 
     //Leitura dos comandos 1a meta
     char initCommand[TAM];
-    char nomeFichItens[TAM];
-    char nomeFichPromotores[TAM];
-    char nomeFichUsers[TAM];
 
     fflush(stdin);
 
@@ -263,13 +242,13 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens){
     if(strcmp(initCommand, "comandos") == 0){
         commandsAdministrador();
     }else if(strcmp(initCommand, "execucao promotor") == 0){
-        printf("\nQual o nome do ficheiro de promotores que pretende executar? \t [black_friday // promotor_oficial]\n");
-        fgets(nomeFichPromotores, TAM, stdin);
+        //printf("\nQual o nome do ficheiro de promotores que pretende executar? \t [black_friday // promotor_oficial]\n");
+        //fgets(FPROMOTERS, TAM, stdin);
 
-        nomeFichPromotores[strcspn(nomeFichPromotores, "\n")] = '\0'; //retirar /n smp que se usa fgets
+        //FPROMOTERS[strcspn(FPROMOTERS, "\n")] = '\0'; //retirar /n smp que se usa fgets
 
-        if(strcmp(nomeFichPromotores, "black_friday") == 0 || strcmp(nomeFichPromotores, "promotor_oficial") == 0){
-            textPp = communicationPipe(textPp, nomeFichPromotores);
+        if(strcmp(aVars->FPROMOTERS, "black_friday") == 0 || strcmp(aVars->FPROMOTERS, "promotor_oficial") == 0){
+            textPp = openPromoter(textPp, aVars);
         }else{
             printf("[ERRO] Nome do ficheiro de promotores errado\n");
             return;
@@ -280,24 +259,25 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens){
 
         ptrClientes clientes;
 
-        printf("\nQual o nome do ficheiro de utilizadores que pretende executar? \n");
-        scanf(" %s", nomeFichUsers);
+        //printf("\nQual o nome do ficheiro de utilizadores que pretende executar? \n");
+        //scanf(" %s", FUSERS);
 
-        int nUsers = loadUsersFile(nomeFichUsers);
+        int nUsers = loadUsersFile(aVars->FUSERS);
+        printf("[nUsers] %d", nUsers);
         clientes = malloc(nUsers * sizeof(Clientes));
 
-        for(int i = 0; i < nUsers; i++){
-            printf("Insira o username: ");
-            scanf(" %s", clientes[i].nome);
-            printf("Insira uma password: ");
-            scanf(" %s", clientes[i].password);
-        }
 
         if(nUsers > 0){
             printf("Ficheiro lido com sucesso\n");
         }else{
             printf("[ERRO] Erro ao ler o ficheiro");
             return ;
+        }
+        for(int i = 0; i < nUsers; i++){
+            printf("Insira o username: ");
+            scanf(" %s", clientes[i].nome);
+            printf("Insira uma password: ");
+            scanf(" %s", clientes[i].password);
         }
 
         if(clientes == NULL){
@@ -316,20 +296,20 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens){
                 clientes[i].saldo -= 1;
                 updateUserBalance(clientes[i].nome, clientes[i].saldo);
 
-                saveUsersFile(nomeFichUsers);
+                saveUsersFile(aVars->FUSERS);
 
-                free(clientes);
             }else if(isUserValid(clientes[i].nome, clientes[i].password) == -1){
                 printf("[ERRO]");
                 return ;
             }
         }
-
+        
+        free(clientes);
         return ;
     }else if(strcmp(initCommand, "itens") == 0){
-        printf("Qual o nome do ficheiro que deseja ler?\n");
-        scanf(" %s", nomeFichItens);
-        itens = readItens(itens, nomeFichItens);
+        //printf("Qual o nome do ficheiro que deseja ler?\n");
+        //scanf(" %s", FITEMS);
+        itens = readItens(itens, aVars);
 
         for(int i = 0; i < 2; i++){
             printf("\n%d %s %s %d %d %d %s %s\n", itens[i].id, itens[i].nome, itens[i].categoria, itens[i].preco_base, itens[i].comprar_ja, itens[i].tempo, itens[i].nomeV, itens[i].nomeC);
@@ -353,6 +333,10 @@ int main(int argc, char** argv){
 
     ptrHandlerPromotor textPp = malloc(sizeof(HandlerPromotor));
     ptrItens itens = malloc(30 * sizeof(Itens));
+    ptrAmbientVars aVars = malloc(sizeof(ambientVars));
+    //char* FPROMOTERS;
+    //char* FUSERS;
+    //char* FITEMS;
 
     if(textPp == NULL){
         printf("[ERRO] Memoria nao alocada\n");
@@ -366,13 +350,22 @@ int main(int argc, char** argv){
         free(itens);
         return -1;
     }
+    
+    if(aVars == NULL){
+        printf("[ERRO] Memoria nao alocada\n");
+        free(textPp);
+        free(itens);
+        free(aVars);
+        return -1;
+    }
+
+    aVars = getAmbientVariables(aVars);
 
     while(1)
-        interface(textPp, itens);
+        interface(textPp, itens, aVars);
 
     free(textPp);
     free(itens);
-    //free(clientes); erro a dar free aos clientes
 
     return 0;
 
