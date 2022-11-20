@@ -153,6 +153,10 @@ ptrAmbientVars getAmbientVariables(ptrAmbientVars aVars){
     aVars->FUSERS = getenv("FUSERS");
     aVars->FITEMS = getenv("FITEMS");
 
+    printf("\n[FPROMOTERS] %s", aVars->FPROMOTERS);
+    printf("\n[FUSERS] %s", aVars->FUSERS);
+    printf("\n[FITEMS] %s\n", aVars->FITEMS);
+
     return aVars;
 
 }
@@ -232,7 +236,7 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
 
     fflush(stdin);
 
-    printf("\nDeseja testar que funcionalidade? <comandos> || <execuçao promotor> || <utilizador> || <itens> || help || exit\n");
+    printf("\nDeseja testar que funcionalidade? <comandos> || <execuçao promotor> || <utilizador> || <itens> || <help> || <exit>\n");
     fgets(initCommand, TAM, stdin);
     initCommand[strcspn(initCommand, "\n")] = '\0';
 
