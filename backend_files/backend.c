@@ -153,6 +153,21 @@ ptrAmbientVars getAmbientVariables(ptrAmbientVars aVars){
     aVars->FUSERS = getenv("FUSERS");
     aVars->FITEMS = getenv("FITEMS");
 
+    if(aVars->FPROMOTERS == NULL){
+        printf("\n[ERRO] Variavel de ambiente nao existente\n");
+        return aVars;
+    }
+
+    if(aVars->FUSERS == NULL){
+        printf("\n[ERRO] Variavel de ambiente nao existente\n");
+        return aVars;
+    }
+
+    if(aVars->FITEMS == NULL){
+        printf("\n[ERRO] Variavel de ambiente nao existente\n");
+        return aVars;
+    }
+
     printf("\n[FPROMOTERS] %s", aVars->FPROMOTERS);
     printf("\n[FUSERS] %s", aVars->FUSERS);
     printf("\n[FITEMS] %s\n", aVars->FITEMS);
@@ -257,9 +272,7 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
         ptrClientes clientes;
 
         int nUsers = loadUsersFile(aVars->FUSERS);
-        printf("[nUsers] %d", nUsers);
         clientes = malloc(nUsers * sizeof(Clientes));
-
 
         if(nUsers > 0){
             printf("Ficheiro lido com sucesso\n");
@@ -359,6 +372,3 @@ int main(int argc, char** argv){
     return 0;
 
 }
-
-//Duvidas alocar o espaco apra os cleintes dentro da verificacao se o comando for utilizador e no caso dos itens isso n acontece(sera que ha problema mais apra a frente)
-//como fazer o execl noutros pcs devido ao path dos ficheiros

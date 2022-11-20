@@ -1,4 +1,4 @@
-joaoc ola123 25
-barre15 123ola 16
-barre12 123olaaa 8
+joaoc ola123 24
+barre15 123ola 15
+barre12 123olaaa 7
 
