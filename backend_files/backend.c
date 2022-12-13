@@ -359,13 +359,13 @@ int main(int argc, char** argv){
         return -1;
     }
 
-    /*if(mkfifo(BACKEND_FIFO, 0666) == -1){
+    if(mkfifo(BACKEND_FIFO, 0666) == -1){
         if(errno == EEXIST){
             printf("\n[ERRO] Servidor em execução ou fifo já existe\n");
         }
         printf("\n[ERRO] Erro na criacao do fifo do backend\n");
         return 0;
-    }*/
+    }
 
     backend.aVars = getAmbientVariables(&backend);
 
