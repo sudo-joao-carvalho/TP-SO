@@ -1,17 +1,21 @@
-#include <signal.h>
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <sys/wait.h>
-#include <unistd.h>
+#include <string.h>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <signal.h>
+#include <errno.h>
 
 #define TAM 50
+#define BACKEND_FIFO "BACKEND_FIFO"
+#define UTILIZADOR "UTILIZADOR%d"
 
 //Estruturas Gerais
 
 typedef struct Clientes{
+    pid_t pid;
     char nome[TAM];
     char password[TAM];
     int saldo;
@@ -41,3 +45,9 @@ typedef struct ambientVars{
     char* FUSERS;
     char* FITEMS;
 }ambientVars, *ptrAmbientVars;
+
+typedef struct Backend{
+    ptrClientes clientes;
+    ptrItens itens;
+    ptrAmbientVars aVars;
+}Backend, *ptrBackend;

@@ -147,44 +147,43 @@ void commandsAdministrador(){
 
 }
 
-ptrAmbientVars getAmbientVariables(ptrAmbientVars aVars){
+ptrAmbientVars getAmbientVariables(/*ptrAmbientVars aVars*/Backend* backend){
 
-    aVars->FPROMOTERS = getenv("FPROMOTERS");
-    aVars->FUSERS = getenv("FUSERS");
-    aVars->FITEMS = getenv("FITEMS");
-
-    if(aVars->FPROMOTERS == NULL){
-        printf("\n[ERRO] Variavel de ambiente nao existente\n");
-        return aVars;
+    if(getenv("FPROMOTERS") == NULL){
+        printf("\n[ERRO] Variavel de ambiente FPROMOTORES nao existente\n");
+        exit(0);
     }
+    backend->aVars->FPROMOTERS = getenv("FPROMOTERS");
 
-    if(aVars->FUSERS == NULL){
-        printf("\n[ERRO] Variavel de ambiente nao existente\n");
-        return aVars;
+    if(getenv("FUSERS") == NULL){
+        printf("\n[ERRO] Variavel de ambiente FUSERS nao existente\n");
+        exit(0);
     }
+    backend->aVars->FUSERS = getenv("FUSERS");
 
-    if(aVars->FITEMS == NULL){
-        printf("\n[ERRO] Variavel de ambiente nao existente\n");
-        return aVars;
+    if(getenv("FITEMS") == NULL){
+        printf("\n[ERRO] Variavel de ambiente FITEMS nao existente\n");
+        exit(0);
     }
+    backend->aVars->FITEMS = getenv("FITEMS");
 
-    printf("\n[FPROMOTERS] %s", aVars->FPROMOTERS);
+    /*printf("\n[FPROMOTERS] %s", aVars->FPROMOTERS);
     printf("\n[FUSERS] %s", aVars->FUSERS);
-    printf("\n[FITEMS] %s\n", aVars->FITEMS);
+    printf("\n[FITEMS] %s\n", aVars->FITEMS);*/
 
-    return aVars;
+    return backend->aVars;
 
 }
 
-ptrItens readItens(ptrItens itens, ptrAmbientVars aVars){
+ptrItens readItens(/*ptrItens itens, ptrAmbientVars aVars*/Backend* backend){
 
     int i = 0;
     FILE* ptr;
-    ptr = fopen(aVars->FITEMS, "r");
+    ptr = fopen(backend->aVars->FITEMS, "r");
 
     if (ptr == NULL) {
         printf("[ERRO] Ficheiro nao existe\n");
-        return itens;
+        return backend->itens;
     }  
     
     while (!feof(ptr)){
@@ -192,59 +191,64 @@ ptrItens readItens(ptrItens itens, ptrAmbientVars aVars){
             break;
         }
 
-        fscanf(ptr," %d %s %s %d %d %d %s %s", &(itens[i].id), itens[i].nome, itens[i].categoria, &(itens[i].preco_base), &(itens[i].comprar_ja), &(itens[i].tempo), itens[i].nomeV, itens[i].nomeC);
+        fscanf(ptr," %d %s %s %d %d %d %s %s", &(backend->itens[i].id), backend->itens[i].nome, backend->itens[i].categoria, &(backend->itens[i].preco_base), &(backend->itens[i].comprar_ja), &(backend->itens[i].tempo), backend->itens[i].nomeV, backend->itens[i].nomeC);
          
         i++;
     }
 
     fclose(ptr);
-    return itens;
+    return backend->itens;
 
  }   
 
-ptrHandlerPromotor openPromoter(ptrHandlerPromotor pP, ptrAmbientVars aVars){
+void openPromoter(/*ptrHandlerPromotor pP, ptrAmbientVars aVars*/Backend* backend){
 
     char msgPromotor[TAM];
     char path[100];
     char ff[TAM] = "../promotor_files/";
     char fff[TAM] = "./";
+    int fd[2];
 
-    strcpy(path, strcat(ff, aVars->FPROMOTERS));
-    strcat(fff, aVars->FPROMOTERS);
+    strcpy(path, strcat(ff, backend->aVars->FPROMOTERS));
+    strcat(fff, backend->aVars->FPROMOTERS);
 
-    pipe(pP->fd);
+    pipe(fd);
 
     int id = fork();
 
     if(id < 0){
         printf("[ERRO] Promotor nao foi criado com sucesso\n");
-        return NULL;
+        return ;
     }else if(id == 0){
         close(1); //fecha o stdout no file descriptor
-        dup(pP->fd[1]); //duplica o stdout
-        close(pP->fd[0]); //fecha o antigo
-        close(pP->fd[1]); // fecha a outra ponta do pipe
+        dup(fd[1]); //duplica o stdout
+        close(fd[0]); //fecha o antigo
+        close(fd[1]); // fecha a outra ponta do pipe
         
         execl(path, fff, NULL);
+        exit(0);
     }else if(id > 0){
-        read(pP->fd[0], msgPromotor, sizeof(msgPromotor)); //lê o que recebe do printf do promotor atraves do pipe
-        close(pP->fd[1]); //fecha a ponta do pipe onde foi escrito
-        printf("%s", msgPromotor); //printa a mensagem do promotor
+        int size = read(fd[0], msgPromotor, sizeof(msgPromotor)); //lê o que recebe do printf do promotor atraves do pipe
+        
+        if(size > 0){
+            close(fd[1]); //fecha a ponta do pipe onde foi escrito
+            printf("%s", msgPromotor); //printa a mensagem do promotor
 
-        /*union sigval xpto;
-        sigqueue(id, SIGUSR1, xpto);*/
+            /*union sigval xpto;
+            sigqueue(id, SIGUSR1, xpto);*/
 
-        //working
-        kill(id, SIGKILL);
-        wait(&id);
+            //working
+            kill(id, SIGKILL);
+            wait(&id);
+        }else printf("\nMensagem nao lida\n");
 
-        return 0;
+        return ;
     }
 
-    return pP;
+    return ;
 }
 
-void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
+void interface(/*ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars*/Backend* backend){
 
     //Leitura dos comandos 1a meta
     char initCommand[TAM];
@@ -259,8 +263,8 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
         commandsAdministrador();
     }else if(strcmp(initCommand, "execucao promotor") == 0){
 
-        if(strcmp(aVars->FPROMOTERS, "black_friday") == 0 || strcmp(aVars->FPROMOTERS, "promotor_oficial") == 0){
-            textPp = openPromoter(textPp, aVars);
+        if(strcmp(backend->aVars->FPROMOTERS, "black_friday") == 0 || strcmp(backend->aVars->FPROMOTERS, "promotor_oficial") == 0){
+            openPromoter(backend);
         }else{
             printf("[ERRO] Nome do ficheiro de promotores errado\n");
             return;
@@ -271,7 +275,7 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
 
         ptrClientes clientes;
 
-        int nUsers = loadUsersFile(aVars->FUSERS);
+        int nUsers = loadUsersFile(backend->aVars->FUSERS);
         clientes = malloc(nUsers * sizeof(Clientes));
 
         if(nUsers > 0){
@@ -279,12 +283,6 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
         }else{
             printf("[ERRO] Erro ao ler o ficheiro");
             return ;
-        }
-        for(int i = 0; i < nUsers; i++){
-            printf("Insira o username: ");
-            scanf(" %s", clientes[i].nome);
-            printf("Insira uma password: ");
-            scanf(" %s", clientes[i].password);
         }
 
         if(clientes == NULL){
@@ -294,6 +292,11 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
         }
 
         for(int i = 0; i < nUsers; i++){
+            printf("Insira o username: ");
+            scanf(" %s", clientes[i].nome);
+            printf("Insira uma password: ");
+            scanf(" %s", clientes[i].password);
+
             if(isUserValid(clientes[i].nome, clientes[i].password) == 0){
                 printf("[ERRO] Utilizador nao existe/password invalida\n");
             }else if(isUserValid(clientes[i].nome, clientes[i].password) == 1){
@@ -303,7 +306,7 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
                 clientes[i].saldo -= 1;
                 updateUserBalance(clientes[i].nome, clientes[i].saldo);
 
-                saveUsersFile(aVars->FUSERS);
+                saveUsersFile(backend->aVars->FUSERS);
 
             }else if(isUserValid(clientes[i].nome, clientes[i].password) == -1){
                 printf("[ERRO]");
@@ -314,10 +317,10 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
         free(clientes);
         return ;
     }else if(strcmp(initCommand, "itens") == 0){
-        itens = readItens(itens, aVars);
+        backend->itens = readItens(backend);
 
-        for(int i = 0; itens[i].id != '\0'; i++){
-            printf("\n%d %s %s %d %d %d %s %s\n", itens[i].id, itens[i].nome, itens[i].categoria, itens[i].preco_base, itens[i].comprar_ja, itens[i].tempo, itens[i].nomeV, itens[i].nomeC);
+        for(int i = 0; backend->itens[i].id != '\0'; i++){
+            printf("\n%d %s %s %d %d %d %s %s\n", backend->itens[i].id, backend->itens[i].nome, backend->itens[i].categoria, backend->itens[i].preco_base, backend->itens[i].comprar_ja, backend->itens[i].tempo, backend->itens[i].nomeV, backend->itens[i].nomeC);
         }
 
         return ;
@@ -336,39 +339,49 @@ void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars){
 
 int main(int argc, char** argv){
 
-    ptrHandlerPromotor textPp = malloc(sizeof(HandlerPromotor));
-    ptrItens itens = malloc(30 * sizeof(Itens));
-    ptrAmbientVars aVars = malloc(sizeof(ambientVars));
+    Backend backend;
+    backend.itens = malloc(30 * sizeof(backend.itens));
+    backend.aVars = malloc(sizeof(backend.aVars));
+    //ptrHandlerPromotor textPp = malloc(sizeof(HandlerPromotor));
+    //ptrItens itens = malloc(30 * sizeof(Itens));
+    //ptrAmbientVars aVars = malloc(sizeof(ambientVars));
 
-    if(textPp == NULL){
+    if(backend.itens == NULL){
         printf("[ERRO] Memoria nao alocada\n");
-        free(textPp);
-        return -1;
-    }
-
-    if(itens == NULL){
-        printf("[ERRO] Memoria nao alocada\n");
-        free(textPp);
-        free(itens);
+        free(backend.itens);
         return -1;
     }
     
-    if(aVars == NULL){
+    if(backend.aVars == NULL){
         printf("[ERRO] Memoria nao alocada\n");
-        free(textPp);
-        free(itens);
-        free(aVars);
+        free(backend.itens);
+        free(backend.aVars);
         return -1;
     }
 
-    aVars = getAmbientVariables(aVars);
+    /*if(mkfifo(BACKEND_FIFO, 0666) == -1){
+        if(errno == EEXIST){
+            printf("\n[ERRO] Servidor em execução ou fifo já existe\n");
+        }
+        printf("\n[ERRO] Erro na criacao do fifo do backend\n");
+        return 0;
+    }*/
+
+    backend.aVars = getAmbientVariables(&backend);
+
+    /*int backend_fd = open(BACKEND_FIFO,O_RDONLY);
+    if(backend_fd == -1){
+        printf("\n[ERRO] Erro no fifo do backend");
+        exit(EXIT_FAILURE);
+    }*/
 
     while(1)
-        interface(textPp, itens, aVars);
+        //interface(/*textPp, itens, aVars*/&backend);
 
-    free(textPp);
-    free(itens);
-
+        //int size;
+    free(backend.itens);
+    /*unlink(BACKEND_FIFO);
+    close(backend_fd);*/
     return 0;
 
 }

@@ -4,16 +4,12 @@
 #ifndef BACKEND_H
 #define BACKEND_H
 
-typedef struct HandlerPromotor{
-    int fd[2];
-} HandlerPromotor, *ptrHandlerPromotor;
-
 void commandHelp();
 void commandsAdministrador();
-ptrAmbientVars getAmbientVariables(ptrAmbientVars aVars);
-ptrItens readItens(ptrItens i, ptrAmbientVars aVars);
-ptrHandlerPromotor openPromoter(ptrHandlerPromotor pP, ptrAmbientVars aVars);
-void interface(ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars);
+ptrAmbientVars getAmbientVariables(Backend* backend);
+ptrItens readItens(Backend* backend);
+void openPromoter(Backend* backend);
+void interface(Backend* backend);
 
 #endif
 
