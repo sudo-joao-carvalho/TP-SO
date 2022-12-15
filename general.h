@@ -13,7 +13,7 @@
 #define UTILIZADOR "Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/frontend_files/UTILIZADOR_%d" ///Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/frontend_files/UTILIZADOR_%d
 
 char UTILIZADOR_FIFO_FINAL[TAM_MAX];
-static int usersCounter = 0;
+static int usersCounter = 0; //isto so vai ser acedido e incrementado no backend, no frontend apenas e criado um cliente e no backend é que os meto em posicoes diferentes
 
 //Estruturas Gerais
 
