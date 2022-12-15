@@ -1,6 +1,10 @@
 #include "backend.h"
 #include "users_lib.h"
 
+int max(int a, int b){
+    return (a > b) ? a : b;
+}
+
 void commandHelp(){
 
     printf("\n\n******************  Admin. Commands List  ******************\n\n");
@@ -17,14 +21,14 @@ void commandHelp(){
 
 void commandsAdministrador(){
 
-    char command[TAM];
+    char command[TAM_MAX];
     char firstCommand[10];
     char* token;
 
     fflush(stdin);
 
     printf("Insira o comando de administrador que pretende executar: ");
-    fgets(command, TAM, stdin);
+    fgets(command, TAM_MAX, stdin);
 
     token = strtok(command, " \n");
 
@@ -147,7 +151,7 @@ void commandsAdministrador(){
 
 }
 
-ptrAmbientVars getAmbientVariables(/*ptrAmbientVars aVars*/Backend* backend){
+ptrAmbientVars getAmbientVariables(Backend* backend){
 
     if(getenv("FPROMOTERS") == NULL){
         printf("\n[ERRO] Variavel de ambiente FPROMOTORES nao existente\n");
@@ -175,7 +179,7 @@ ptrAmbientVars getAmbientVariables(/*ptrAmbientVars aVars*/Backend* backend){
 
 }
 
-ptrItens readItens(/*ptrItens itens, ptrAmbientVars aVars*/Backend* backend){
+ptrItens readItens(Backend* backend){
 
     int i = 0;
     FILE* ptr;
@@ -201,12 +205,12 @@ ptrItens readItens(/*ptrItens itens, ptrAmbientVars aVars*/Backend* backend){
 
  }   
 
-void openPromoter(/*ptrHandlerPromotor pP, ptrAmbientVars aVars*/Backend* backend){
+void openPromoter(Backend* backend){
 
-    char msgPromotor[TAM];
+    char msgPromotor[TAM_MAX];
     char path[100];
-    char ff[TAM] = "../promotor_files/";
-    char fff[TAM] = "./";
+    char ff[TAM_MAX] = "../promotor_files/";
+    char fff[TAM_MAX] = "./";
     int fd[2];
 
     strcpy(path, strcat(ff, backend->aVars->FPROMOTERS));
@@ -248,15 +252,15 @@ void openPromoter(/*ptrHandlerPromotor pP, ptrAmbientVars aVars*/Backend* backen
     return ;
 }
 
-void interface(/*ptrHandlerPromotor textPp, ptrItens itens, ptrAmbientVars aVars*/Backend* backend){
+void interface(Backend* backend){
 
     //Leitura dos comandos 1a meta
-    char initCommand[TAM];
+    char initCommand[TAM_MAX];
 
     fflush(stdin);
 
     printf("\nDeseja testar que funcionalidade? <comandos> || <execuçao promotor> || <utilizador> || <itens> || <help> || <exit>\n");
-    fgets(initCommand, TAM, stdin);
+    fgets(initCommand, TAM_MAX, stdin);
     initCommand[strcspn(initCommand, "\n")] = '\0';
 
     if(strcmp(initCommand, "comandos") == 0){
@@ -342,9 +346,10 @@ int main(int argc, char** argv){
     Backend backend;
     backend.itens = malloc(30 * sizeof(backend.itens));
     backend.aVars = malloc(sizeof(backend.aVars));
-    //ptrHandlerPromotor textPp = malloc(sizeof(HandlerPromotor));
-    //ptrItens itens = malloc(30 * sizeof(Itens));
-    //ptrAmbientVars aVars = malloc(sizeof(ambientVars));
+    backend.clientes = malloc(20 * sizeof(backend.clientes));
+    int nfd;
+    fd_set read_fds;
+    struct timeval tv;
 
     if(backend.itens == NULL){
         printf("[ERRO] Memoria nao alocada\n");
@@ -358,30 +363,82 @@ int main(int argc, char** argv){
         free(backend.aVars);
         return -1;
     }
-
-    if(mkfifo(BACKEND_FIFO, 0666) == -1){
-        if(errno == EEXIST){
-            printf("\n[ERRO] Servidor em execução ou fifo já existe\n");
-        }
-        printf("\n[ERRO] Erro na criacao do fifo do backend\n");
-        return 0;
-    }
-
     backend.aVars = getAmbientVariables(&backend);
 
-    /*int backend_fd = open(BACKEND_FIFO,O_RDONLY);
+    if(mkfifo(BACKEND_FIFO, 0666) == -1){
+        if(errno == EEXIST){ //existe apenas um backend
+            printf("\n[ERRO] Servidor em execução ou fifo já existe\n");
+            return -1;
+        }
+        perror("\n[ERRO] Erro na criacao do fifo do backend\n");
+        return -1;
+    }
+    printf("FIFO Criado...\n");
+
+    //find . -type p -delete
+
+    int backend_fd = open(BACKEND_FIFO, O_RDONLY | O_NONBLOCK);
     if(backend_fd == -1){
-        printf("\n[ERRO] Erro no fifo do backend");
+        perror("\n[ERRO] Erro ao abrir o fifo do backend");
         exit(EXIT_FAILURE);
-    }*/
+    }
+    printf("\nServidor do backend configurado!\n backend_fd = %d\n", backend_fd);
 
-    while(1)
+    while(1){
         //interface(/*textPp, itens, aVars*/&backend);
+        tv.tv_sec = 5;
+        tv.tv_usec = 0;
 
-        //int size;
+        FD_ZERO(&read_fds);
+        FD_SET(0, &read_fds);
+        FD_SET(backend_fd, &read_fds);
+
+        nfd = select(backend_fd + 1, &read_fds, NULL, NULL, &tv);
+        if(nfd == -1){
+            printf("\nNada a receber\n");
+            exit(0);
+        }
+        
+        if(nfd == 0){
+            printf("\n Estou a espera de comandos ou de utilizadores\n");
+        }
+
+        if(FD_ISSET(0, &read_fds)){
+            //Aqui esta a escuta pelos comandos introduzidos pelo administrador
+        }else if(FD_ISSET(backend_fd, &read_fds)){
+            //Aqui esta a escuta dos utilizadores que vai receber pelo named_pipe
+            int size = read(backend_fd, &(backend.clientes[usersCounter]), sizeof(backend.clientes[usersCounter]));
+            //printf("\nmsg = %s\n", backend.clientes[0].nome);
+            //printf("\npassword = %s\n", backend.clientes[0].password);
+
+            
+            if(size < 0){
+                printf("\n[ERRO] Erro ao ler do pipe\n");
+            }else if(size > 0){
+                printf("\nUTILIZADOR_%d", backend.clientes[usersCounter].pid);
+                printf("\n recebi o username [%s] e a password[%s]", backend.clientes[usersCounter].nome, backend.clientes[usersCounter].password);
+                if (strcmp("sair\n", backend.clientes[usersCounter].nome)==0){
+                    close(backend_fd);
+                    unlink (BACKEND_FIFO);
+                    return 1;
+                }
+
+                printf("\n");
+                for(int i = 0; i < 20; i++){
+                    printf("\nUTILIZADOR %d", i);
+                    printf("username = %s", backend.clientes[i].nome);
+                    printf("password = %s", backend.clientes[i].password);
+                }
+
+                /*sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, backend.clientes->pid);
+                int fdEnvio = open (UTILIZADOR_FIFO_FINAL, O_WRONLY);
+                backend.clientes->pid = getpid();
+                int s2 = write (fdEnvio,&msg,sizeof(msg));
+                close (fdEnvio);*/
+            }
+        }
+    }
     free(backend.itens);
-    /*unlink(BACKEND_FIFO);
-    close(backend_fd);*/
     return 0;
 
 }

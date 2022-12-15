@@ -21,14 +21,14 @@ void commandHelp(){
 
 char* readCommands(char* CommandM){
 
-    char command[TAM];
+    char command[TAM_MAX];
     char firstCommand[10];
     char* token;
 
     fflush(stdin);
 
     printf("Insira o comando que pretende executar: ");
-    fgets(command, TAM, stdin);
+    fgets(command, TAM_MAX, stdin);
 
     token = strtok(command, " \n");
 
@@ -257,8 +257,9 @@ int main(int argc, char** argv){
 
     char* user = argv[1];
     char* pass = argv[2];
-    ptrClientes client = malloc(sizeof(Clientes));
     char* command;
+    Backend backend;
+    backend.clientes = malloc(20 * sizeof(backend.clientes));
 
     if(argc < 3){
         printf("[ERRO] Numero de comandos inseridos invalido\n");
@@ -272,16 +273,52 @@ int main(int argc, char** argv){
 
     if(argc == 3){
 
-        strcpy(client->nome, user);
-        strcpy(client->password, pass);
-
-        while(1){
-            command = readCommands(command);
+        strcpy(backend.clientes[usersCounter].nome, user);
+        strcpy(backend.clientes[usersCounter].password, pass);
+        //while(1){
+            /*command = readCommands(command);
 
             if(strcmp(command, "exit") == 0){
                 break;
+            }*/
+
+            //ENVIO DAS CREDENCIAIS PARA O BACKEND
+            sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, getpid());
+
+            /*if(access(UTILIZADOR_FIFO_FINAL, F_OK) == 0) {
+                printf("\n[ERRO] Esse utilizador ja existe\n");
+                exit(0);
             }
-        }
+
+            mkfifo(UTILIZADOR_FIFO_FINAL, 0666);
+
+            int utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY);
+            if (utilizador_fd == -1){
+                printf("Erro ao abrir utilizador");
+                return -1;
+            }*/
+
+            int backend_fd = open(BACKEND_FIFO, O_WRONLY);
+            if (backend_fd == -1){
+                printf("Erro o servidor não está a correr");
+                unlink(UTILIZADOR_FIFO_FINAL);
+                return -1;
+            }
+
+            backend.clientes[usersCounter].pid = getpid();
+
+            int size = write(backend_fd, &(backend.clientes[usersCounter]), sizeof(backend.clientes[usersCounter])); //envia o username
+            //int size2 = write(backend_fd, argv[2], sizeof(argv[2])); //envia a password
+
+            if(size <= 0){
+                printf("\n[ERRO] Erro no envio do username e da password\n");
+            }
+            usersCounter++;
+            close(backend_fd);
+            //ENVIO DAS CREDENCIAIS PARA O BACKEND
+
+
+        //}
 
     }
 

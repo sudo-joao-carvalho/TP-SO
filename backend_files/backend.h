@@ -4,6 +4,7 @@
 #ifndef BACKEND_H
 #define BACKEND_H
 
+int max(int a, int b);
 void commandHelp();
 void commandsAdministrador();
 ptrAmbientVars getAmbientVariables(Backend* backend);
