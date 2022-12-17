@@ -7,8 +7,8 @@
 int max(int a, int b);
 void commandHelp();
 void commandsAdministrador();
-ptrAmbientVars getAmbientVariables(Backend* backend);
-ptrItens readItens(Backend* backend);
+ambientVars* getAmbientVariables(Backend* backend);
+Itens* readItens(Backend* backend);
 void openPromoter(Backend* backend);
 void interface(Backend* backend);
 

@@ -151,7 +151,7 @@ void commandsAdministrador(){
 
 }
 
-ptrAmbientVars getAmbientVariables(Backend* backend){
+ambientVars* getAmbientVariables(Backend* backend){
 
     if(getenv("FPROMOTERS") == NULL){
         printf("\n[ERRO] Variavel de ambiente FPROMOTORES nao existente\n");
@@ -179,7 +179,7 @@ ptrAmbientVars getAmbientVariables(Backend* backend){
 
 }
 
-ptrItens readItens(Backend* backend){
+Itens* readItens(Backend* backend){
 
     int i = 0;
     FILE* ptr;
@@ -252,7 +252,7 @@ void openPromoter(Backend* backend){
     return ;
 }
 
-void interface(Backend* backend){
+/*void interface(Backend* backend){
 
     //Leitura dos comandos 1a meta
     char initCommand[TAM_MAX];
@@ -339,7 +339,40 @@ void interface(Backend* backend){
     }
     //Leitura dos comandos 1a meta
     
+}*/
+
+char* verificaUser(Backend* backend, Clientes aux, int clientesCounter){
+
+    fflush(stdin);
+
+    int nUsers = loadUsersFile(backend->aVars->FUSERS);
+
+    if(nUsers > 0){
+        printf("Ficheiro lido com sucesso\n");
+    }else{
+        //printf("[ERRO] Erro ao ler o ficheiro");
+        return "[ERRO] Erro ao ler o ficheiro";
+    }
+
+    if(isUserValid(aux.nome, aux.password) == 0){
+        return "[ERRO] Utilizador nao existe/password invalida\n";
+    }else if(isUserValid(aux.nome, aux.password) == 1){
+        backend->clientes[clientesCounter] = aux;
+        aux.saldo = getUserBalance(aux.nome);
+
+        //updateUserBalance(aux.nome, aux.nome);
+
+        //saveUsersFile(backend.aVars.FUSERS);
+
+        return "Usuario Valido\n";
+
+    }else if(isUserValid(aux.nome, aux.password) == -1){
+        return "[ERRO]";
+    }
+
+    return "[ERRO]";
 }
+
 
 int main(int argc, char** argv){
 
@@ -347,9 +380,13 @@ int main(int argc, char** argv){
     backend.itens = malloc(30 * sizeof(backend.itens));
     backend.aVars = malloc(sizeof(backend.aVars));
     backend.clientes = malloc(20 * sizeof(backend.clientes));
+    Clientes aux;
+    int clientesCounter = 0;
     int nfd;
     fd_set read_fds;
     struct timeval tv;
+    char* clienteValidoMsg;
+    dataMSG resposta;
 
     if(backend.itens == NULL){
         printf("[ERRO] Memoria nao alocada\n");
@@ -367,7 +404,7 @@ int main(int argc, char** argv){
 
     if(mkfifo(BACKEND_FIFO, 0666) == -1){
         if(errno == EEXIST){ //existe apenas um backend
-            printf("\n[ERRO] Servidor em execução ou fifo já existe\n");
+            printf("\n[ERRO] Servidor em execução ou fifo ja existe\n");
             return -1;
         }
         perror("\n[ERRO] Erro na criacao do fifo do backend\n");
@@ -382,7 +419,6 @@ int main(int argc, char** argv){
         perror("\n[ERRO] Erro ao abrir o fifo do backend");
         exit(EXIT_FAILURE);
     }
-    printf("\nServidor do backend configurado!\n backend_fd = %d\n", backend_fd);
 
     while(1){
         //interface(/*textPp, itens, aVars*/&backend);
@@ -407,34 +443,51 @@ int main(int argc, char** argv){
             //Aqui esta a escuta pelos comandos introduzidos pelo administrador
         }else if(FD_ISSET(backend_fd, &read_fds)){
             //Aqui esta a escuta dos utilizadores que vai receber pelo named_pipe
-            int size = read(backend_fd, &(backend.clientes[usersCounter]), sizeof(backend.clientes[usersCounter]));
-            //printf("\nmsg = %s\n", backend.clientes[0].nome);
-            //printf("\npassword = %s\n", backend.clientes[0].password);
-
+            int size = read(backend_fd, &aux, sizeof(aux)); //ler o cliente para uma estrutura auxiliar para verificar se é um usuario valido e assim n ter de o adicionar a estrutura de clientes caso seja invalido
             
             if(size < 0){
                 printf("\n[ERRO] Erro ao ler do pipe\n");
             }else if(size > 0){
-                printf("\nUTILIZADOR_%d", backend.clientes[usersCounter].pid);
-                printf("\n recebi o username [%s] e a password[%s]", backend.clientes[usersCounter].nome, backend.clientes[usersCounter].password);
-                if (strcmp("sair\n", backend.clientes[usersCounter].nome)==0){
-                    close(backend_fd);
-                    unlink (BACKEND_FIFO);
-                    return 1;
+                clienteValidoMsg = verificaUser(&backend, aux, clientesCounter);
+                //printf("msg: %s\n", clienteValidoMsg);
+                //printf("clientesCounter: %d\n", clientesCounter);
+
+                strcpy(resposta.msg, clienteValidoMsg);
+
+                if(strcmp(clienteValidoMsg, "Usuario Valido\n") == 0){
+                    printf("\nUTILIZADOR_%d", backend.clientes[clientesCounter].pid);
+                    printf("\n recebi o username [%s] e a password[%s]", backend.clientes[clientesCounter].nome, backend.clientes[clientesCounter].password);
+                    if (strcmp("sair\n", backend.clientes[clientesCounter].nome)==0){
+                        close(backend_fd);
+                        unlink (BACKEND_FIFO);
+                        return 1;
+                    }
                 }
 
-                printf("\n");
+                sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, backend.clientes[clientesCounter].pid);
+                int utilizador_fd = open (UTILIZADOR_FIFO_FINAL, O_WRONLY);
+                if(utilizador_fd == -1){
+                    perror("\n[ERRO] Erro ao abrir o fifo do backend");
+                    exit(EXIT_FAILURE);
+                }
+
+                resposta.pid = getpid();
+                
+                int s2 = write (utilizador_fd, &resposta, sizeof(resposta));
+                if(s2 < 0){
+                    printf("Erro ao escrever no pipe\n");
+                }
+                close (utilizador_fd);
+
+                clientesCounter++;
+
+                
+                /*printf("\n");
                 for(int i = 0; i < 20; i++){
-                    printf("\nUTILIZADOR %d", i);
+                    printf("\nUTILIZADOR %d\n", i);
                     printf("username = %s", backend.clientes[i].nome);
                     printf("password = %s", backend.clientes[i].password);
-                }
-
-                /*sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, backend.clientes->pid);
-                int fdEnvio = open (UTILIZADOR_FIFO_FINAL, O_WRONLY);
-                backend.clientes->pid = getpid();
-                int s2 = write (fdEnvio,&msg,sizeof(msg));
-                close (fdEnvio);*/
+                }*/
             }
         }
     }
@@ -442,3 +495,7 @@ int main(int argc, char** argv){
     return 0;
 
 }
+
+//FAZER
+//VERIFICAR SE O USER É VALIDO
+//ENVIAR MENSAGEM A DIZER QUE FOI LOGADO OU NAO
