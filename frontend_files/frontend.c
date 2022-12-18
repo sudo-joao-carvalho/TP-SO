@@ -363,13 +363,17 @@ int main(int argc, char** argv){
                     printf("Login feito com sucesso\n");
                 else if(strcmp(msgFromBackend.msg, "[ERRO] Utilizador nao existe/password invalida\n") == 0)
                     printf("Login invalido\n");
+                else if(strcmp(msgFromBackend.msg, "\n[ERRO] Usuario ja esta loggado\n") == 0){
+                    printf("Usuario ja se encontra loggado\n");
+                    kill(getpid(), SIGTERM);
+                }
             }
 
         }
 
             
     }
-    //free(backend.clientes); //FAZER ISTO QUANDO O CLIENTE DER LOGOUT
+    free(backend.clientes); //FAZER ISTO QUANDO O CLIENTE DER LOGOUT
     return 0;
 
 }

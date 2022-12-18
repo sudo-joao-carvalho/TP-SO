@@ -361,21 +361,34 @@ char* verificaUser(Backend* backend, Clientes aux, int clientesCounter){
         return "[ERRO] Erro ao ler o ficheiro";
     }
 
-    if(isUserValid(aux.nome, aux.password) == 0){
-        return "[ERRO] Utilizador nao existe/password invalida\n";
-    }else if(isUserValid(aux.nome, aux.password) == 1){
-        backend->clientes[clientesCounter] = aux;
-        aux.saldo = getUserBalance(aux.nome);
+    if(clientesCounter <= 19){
+        if(isUserValid(aux.nome, aux.password) == 0){
+            return "[ERRO] Utilizador nao existe/password invalida\n";
+        }else if(isUserValid(aux.nome, aux.password) == 1){
 
-        //updateUserBalance(aux.nome, aux.nome);
+            for(int i = 0; i < clientesCounter; i++){
+                if(strcmp(backend->clientes[i].nome, aux.nome) == 0){
+                    return "\n[ERRO] Usuario ja esta loggado\n";
+                
+                }else continue;
+            }
 
-        //saveUsersFile(backend.aVars.FUSERS);
+            backend->clientes[clientesCounter] = aux;
+            backend->clientes[clientesCounter].saldo = getUserBalance(backend->clientes[clientesCounter].nome);
 
-        return "Usuario Valido\n";
+            //updateUserBalance(aux.nome, aux.nome);
 
-    }else if(isUserValid(aux.nome, aux.password) == -1){
-        return "[ERRO]";
-    }
+            //saveUsersFile(backend.aVars.FUSERS);
+
+            return "Usuario Valido\n";
+            
+        }else if(isUserValid(aux.nome, aux.password) == -1){
+            return "[ERRO]";
+        }
+    }else
+        printf("\nNumero maximo de utilizadores atingido\n");
+
+    
 
     return "[ERRO]";
 }
@@ -490,15 +503,15 @@ int main(int argc, char** argv){
                 }
                 close (utilizador_fd);
 
-                clientesCounter++;
-
-                
-                /*printf("\n");
+                printf("\n");
                 for(int i = 0; i < 20; i++){
                     printf("\nUTILIZADOR %d\n", i);
                     printf("username = %s", backend.clientes[i].nome);
                     printf("password = %s", backend.clientes[i].password);
-                }*/
+                    printf("saldo = %d", backend.clientes[i].saldo);
+                }
+
+                clientesCounter++;
             }
         }
     }
