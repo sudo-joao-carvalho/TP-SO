@@ -7,6 +7,9 @@
 #include <sys/stat.h>
 #include <signal.h>
 #include <errno.h>
+#include <pthread.h>
+#include <sys/select.h>
+
 
 #define TAM_MAX 256
 #define BACKEND_FIFO "../backend_files/BACKEND_FIFO" ///Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/backend_files/BACKEND_FIFO
@@ -47,6 +50,7 @@ typedef struct ambientVars{
     char* FPROMOTERS;
     char* FUSERS;
     char* FITEMS;
+    int HEARTBEAT;
 }ambientVars;
 
 typedef struct Backend{

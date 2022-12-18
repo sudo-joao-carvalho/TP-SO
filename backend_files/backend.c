@@ -171,9 +171,16 @@ ambientVars* getAmbientVariables(Backend* backend){
     }
     backend->aVars->FITEMS = getenv("FITEMS");
 
-    /*printf("\n[FPROMOTERS] %s", aVars->FPROMOTERS);
-    printf("\n[FUSERS] %s", aVars->FUSERS);
-    printf("\n[FITEMS] %s\n", aVars->FITEMS);*/
+    if(getenv("HEARTBEAT") == NULL){
+        printf("\n[ERRO] Variavel de ambiente FITEMS nao existente\n");
+        exit(0);
+    }
+    backend->aVars->HEARTBEAT = atoi(getenv("HEARTBEAT"));
+
+    /*printf("\n[FPROMOTERS] %s", backend.aVars->FPROMOTERS);
+    printf("\n[FUSERS] %s", backend.aVars->FUSERS);
+    printf("\n[FITEMS] %s\n", backend.aVars->FITEMS);
+    printf("\n[HEARTBEAT] %D\n", backend.aVars->HEARTBEAT);*/
 
     return backend->aVars;
 
@@ -388,6 +395,9 @@ int main(int argc, char** argv){
     char* clienteValidoMsg;
     dataMSG resposta;
 
+    //CARREGA LOGO AS VARS DE AMBIENTE
+    backend.aVars = getAmbientVariables(&backend);
+
     if(backend.itens == NULL){
         printf("[ERRO] Memoria nao alocada\n");
         free(backend.itens);
@@ -441,6 +451,7 @@ int main(int argc, char** argv){
 
         if(FD_ISSET(0, &read_fds)){
             //Aqui esta a escuta pelos comandos introduzidos pelo administrador
+
         }else if(FD_ISSET(backend_fd, &read_fds)){
             //Aqui esta a escuta dos utilizadores que vai receber pelo named_pipe
             int size = read(backend_fd, &aux, sizeof(aux)); //ler o cliente para uma estrutura auxiliar para verificar se é um usuario valido e assim n ter de o adicionar a estrutura de clientes caso seja invalido
@@ -464,7 +475,7 @@ int main(int argc, char** argv){
                     }
                 }
 
-                sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, backend.clientes[clientesCounter].pid);
+                sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, /*backend.clientes[clientesCounter].pid*/aux.pid); //tem que mandar para o aux pois caso o utilizador n exista ele n vai estar no array de users
                 int utilizador_fd = open (UTILIZADOR_FIFO_FINAL, O_WRONLY);
                 if(utilizador_fd == -1){
                     perror("\n[ERRO] Erro ao abrir o fifo do backend");
@@ -472,7 +483,7 @@ int main(int argc, char** argv){
                 }
 
                 resposta.pid = getpid();
-                
+
                 int s2 = write (utilizador_fd, &resposta, sizeof(resposta));
                 if(s2 < 0){
                     printf("Erro ao escrever no pipe\n");
@@ -495,7 +506,3 @@ int main(int argc, char** argv){
     return 0;
 
 }
-
-//FAZER
-//VERIFICAR SE O USER É VALIDO
-//ENVIAR MENSAGEM A DIZER QUE FOI LOGADO OU NAO

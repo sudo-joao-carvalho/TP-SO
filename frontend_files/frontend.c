@@ -261,6 +261,9 @@ int main(int argc, char** argv){
     char msg[TAM_MAX];
     Backend backend;
     backend.clientes = malloc(sizeof(backend.clientes));
+    int nfd;
+    fd_set read_fds;
+    struct timeval tv;
     dataMSG msgFromBackend;
 
     if(argc < 3){
@@ -277,66 +280,96 @@ int main(int argc, char** argv){
 
         strcpy(backend.clientes->nome, user);
         strcpy(backend.clientes->password, pass);
-        //while(1){
-            /*command = readCommands(command);
 
-            if(strcmp(command, "exit") == 0){
-                break;
-            }*/
+        
+        /*command = readCommands(command);
 
-            //ENVIO DAS CREDENCIAIS PARA O BACKEND
-            sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, getpid());
+        if(strcmp(command, "exit") == 0){
+            break;
+        }*/
 
-            if(access(UTILIZADOR_FIFO_FINAL, F_OK) == 0) {
-                printf("\n[ERRO] Esse utilizador ja existe\n");
+        //ENVIO DAS CREDENCIAIS PARA O BACKEND
+        sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, getpid());
+
+        if(access(UTILIZADOR_FIFO_FINAL, F_OK) == 0) {
+            printf("\n[ERRO] Esse utilizador ja existe\n");
+            exit(0);
+        }
+
+        mkfifo(UTILIZADOR_FIFO_FINAL, 0666);
+
+        int utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_RDWR); //receber as credenciais
+        if (utilizador_fd == -1){
+            printf("Erro ao abrir utilizador");
+            return -1;
+        }
+
+        int backend_fd = open(BACKEND_FIFO, O_RDWR); //enviar as credenciais
+        if (backend_fd == -1){
+            printf("Erro o servidor não está a correr");
+            unlink(UTILIZADOR_FIFO_FINAL);
+            return -1;
+        }
+
+        backend.clientes->pid = getpid();
+        printf("nome: %s\n", backend.clientes->nome);
+        printf("password: %s\n", backend.clientes->password);
+        printf("pid: %d\n", backend.clientes->pid);
+
+        
+        int size = write(backend_fd, &(backend.clientes[0]), sizeof(backend.clientes[0])); //envia o username
+        if(size <= 0){
+            printf("\n[ERRO] Erro no envio do username e da password\n");
+        }
+        close(backend_fd);
+
+
+        while(strcmp(command, "exit") != 0){
+
+            tv.tv_sec = 5;
+            tv.tv_usec = 0;
+
+            FD_ZERO(&read_fds);
+            FD_SET(0, &read_fds);
+            FD_SET(utilizador_fd, &read_fds);
+
+            nfd = select(utilizador_fd + 1, &read_fds, NULL, NULL, &tv);
+
+            if(nfd == -1){
+                printf("\nNada a receber\n");
                 exit(0);
             }
-
-            mkfifo(UTILIZADOR_FIFO_FINAL, 0666);
-
-            int utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_RDWR); //receber as credenciais
-            if (utilizador_fd == -1){
-                printf("Erro ao abrir utilizador");
-                return -1;
+            
+            if(nfd == 0){
+                printf("\n Estou a espera de comandos ou de mensagem do backend\n");
             }
 
-            int backend_fd = open(BACKEND_FIFO, O_WRONLY); //enviar as credenciais
-            if (backend_fd == -1){
-                printf("Erro o servidor não está a correr");
-                unlink(UTILIZADOR_FIFO_FINAL);
-                return -1;
-            }
 
-            backend.clientes->pid = getpid();
-            printf("nome: %s\n", backend.clientes->nome);
-            printf("password: %s\n", backend.clientes->password);
-            printf("pid: %d\n", backend.clientes->pid);
-
-            int size = write(backend_fd, &(backend.clientes[0]), sizeof(backend.clientes[0])); //envia o username
-
-            if(size <= 0){
-                printf("\n[ERRO] Erro no envio do username e da password\n");
-            }
-            close(backend_fd);
             //ENVIO DAS CREDENCIAIS PARA O BACKEND
 
-            //RECEBE MENSAGEM A CONFIRMAR QUE FOI LOGADO
-            int size2 = read(utilizador_fd, &msgFromBackend, sizeof(msgFromBackend));
-            if(size2 < 0){
+            if(FD_ISSET(0, &read_fds)){
+                //Aqui esta a escuta de comandos do utilizador
+                scanf(" %s", command);
+            }else if(FD_ISSET(utilizador_fd, &read_fds)){
+                //Aqui esta a escuta de mensagens do backend
+                
+                //RECEBE MENSAGEM A CONFIRMAR QUE FOI LOGADO
+                int size2 = read(utilizador_fd, &msgFromBackend, sizeof(msgFromBackend));
+                if(size2 < 0){
                     perror("Erro ao ler no pipe\n");
+                }
+                
+                if(strcmp(msgFromBackend.msg, "Usuario Valido\n") == 0)
+                    printf("Login feito com sucesso\n");
+                else if(strcmp(msgFromBackend.msg, "[ERRO] Utilizador nao existe/password invalida\n") == 0)
+                    printf("Login invalido\n");
             }
 
-            printf("msg: %s", msgFromBackend.msg);
+        }
+
             
-            if(strcmp(msgFromBackend.msg, "Usuario Valido\n") == 0) //BUG QUANDO É UM USER INVALIDO
-                printf("Login feito com sucesso\n");
-            else if(strcmp(msgFromBackend.msg, "[ERRO] Utilizador nao existe/password invalida\n") == 0)
-                printf("Login invalido\n");
-
-        //}
-
     }
-
+    //free(backend.clientes); //FAZER ISTO QUANDO O CLIENTE DER LOGOUT
     return 0;
 
 }
