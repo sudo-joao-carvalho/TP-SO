@@ -62,5 +62,14 @@ typedef struct Backend{
 
 typedef struct {
     pid_t pid;
+    int hBeat;
     char msg[100];
 }dataMSG;
+
+typedef struct {
+    int hBeat;
+    //char nomeUsuario[100];
+    int fd;
+    //char msg[100];
+    Clientes cliente;
+}HBEATMSG;

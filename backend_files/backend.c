@@ -368,8 +368,8 @@ char* verificaUser(Backend* backend, Clientes aux, int clientesCounter){
 
             for(int i = 0; i < clientesCounter; i++){
                 if(strcmp(backend->clientes[i].nome, aux.nome) == 0){
+                    //kill(aux.pid, SIGTERM); dar kill ao da nova execucao
                     return "\n[ERRO] Usuario ja esta loggado\n";
-                
                 }else continue;
             }
 
@@ -423,23 +423,22 @@ int main(int argc, char** argv){
         free(backend.aVars);
         return -1;
     }
-    backend.aVars = getAmbientVariables(&backend);
 
     if(mkfifo(BACKEND_FIFO, 0666) == -1){
         if(errno == EEXIST){ //existe apenas um backend
             printf("\n[ERRO] Servidor em execução ou fifo ja existe\n");
             return -1;
         }
-        perror("\n[ERRO] Erro na criacao do fifo do backend\n");
+        printf("\n[ERRO] Erro na criacao do fifo do backend\n");
         return -1;
     }
     printf("FIFO Criado...\n");
 
     //find . -type p -delete
 
-    int backend_fd = open(BACKEND_FIFO, O_RDONLY | O_NONBLOCK);
+    int backend_fd = open(BACKEND_FIFO, O_RDONLY);
     if(backend_fd == -1){
-        perror("\n[ERRO] Erro ao abrir o fifo do backend");
+        printf("\n[ERRO] Erro ao abrir o fifo do backend");
         exit(EXIT_FAILURE);
     }
 
@@ -477,7 +476,9 @@ int main(int argc, char** argv){
                 //printf("clientesCounter: %d\n", clientesCounter);
 
                 strcpy(resposta.msg, clienteValidoMsg);
+                resposta.hBeat = backend.aVars->HEARTBEAT;
 
+                //RECEBE AS CREDENCIAIS DOS USERS
                 if(strcmp(clienteValidoMsg, "Usuario Valido\n") == 0){
                     printf("\nUTILIZADOR_%d", backend.clientes[clientesCounter].pid);
                     printf("\n recebi o username [%s] e a password[%s]", backend.clientes[clientesCounter].nome, backend.clientes[clientesCounter].password);
@@ -488,7 +489,8 @@ int main(int argc, char** argv){
                     }
                 }
 
-                sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, /*backend.clientes[clientesCounter].pid*/aux.pid); //tem que mandar para o aux pois caso o utilizador n exista ele n vai estar no array de users
+                //ENVIA A RESPOSTA DE VERIFICACAO DE LOGIN AOS USERS
+                sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, aux.pid); //tem que mandar para o aux pois caso o utilizador n exista ele n vai estar no array de users
                 int utilizador_fd = open (UTILIZADOR_FIFO_FINAL, O_WRONLY);
                 if(utilizador_fd == -1){
                     perror("\n[ERRO] Erro ao abrir o fifo do backend");
@@ -503,16 +505,25 @@ int main(int argc, char** argv){
                 }
                 close (utilizador_fd);
 
-                printf("\n");
+                /* printf("\n");
                 for(int i = 0; i < 20; i++){
                     printf("\nUTILIZADOR %d\n", i);
                     printf("username = %s", backend.clientes[i].nome);
                     printf("password = %s", backend.clientes[i].password);
                     printf("saldo = %d", backend.clientes[i].saldo);
-                }
+                } */
+                //printf("\nHEARTBEAT:  %s\n", aux.msgHeartBeat);
 
                 clientesCounter++;
             }
+
+            //RECEBE O HEARBEAT
+            /*int s3 = read(backend_fd, &(aux), sizeof(aux));
+            if(s3 < 0){
+                perror("\n[ERRO] Erro ao ler do pipe\n");
+            }else if(s3 > 0){
+                printf("\nHEARTBEAT:  %s\n", aux.msgHeartBeat);
+            }*/
         }
     }
     free(backend.itens);
