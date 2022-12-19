@@ -28,7 +28,7 @@ typedef struct Clientes{
     char msgHB[TAM_MAX];
     int hBeat;
     int fd;
-    //pthread_mutex_t m;
+    pthread_mutex_t m;
 } Clientes;
 
 typedef struct Promotor{

@@ -261,12 +261,12 @@ void* enviaHEARTBEATorMSG(void* msgHeartBeat){
 
     Backend* pMsgHeartBeat = (Backend*) msgHeartBeat;
 
-    //pthread_mutex_lock(&pMsgHeartBeat->clientes->m);
+    pthread_mutex_lock(&pMsgHeartBeat->clientes->m);
         int size = write(pMsgHeartBeat->clientes->fd, &pMsgHeartBeat->clientes, sizeof(pMsgHeartBeat->clientes)); //envia o username
         if(size <= 0){
             perror("\n[ERRO] Erro no envio da mensagem HEARTBEAT\n");
         }
-    //pthread_mutex_unlock(&pMsgHeartBeat->clientes->m);
+    pthread_mutex_unlock(&pMsgHeartBeat->clientes->m);
     //close(pMsgHeartBeat->clientes->fd);
 
     pthread_exit(NULL);
@@ -287,8 +287,9 @@ int main(int argc, char** argv){
     fd_set read_fds;
     struct timeval tv;
     pthread_t thread[2];
-    //pthread_mutex_init(&backend.clientes->m, NULL);
+    pthread_mutex_init(&backend.clientes->m, NULL);
     dataMSG msgFromBackend;
+    int backend_fd;
 
     if(argc < 3){
         printf("[ERRO] Numero de comandos inseridos invalido\n");
@@ -323,7 +324,7 @@ int main(int argc, char** argv){
             return -1;
         }
 
-        int backend_fd = open(BACKEND_FIFO, O_RDWR); //enviar as credenciais
+        backend_fd = open(BACKEND_FIFO, O_RDWR); //enviar as credenciais
         if (backend_fd == -1){
             printf("Erro o servidor não está a correr");
             unlink(UTILIZADOR_FIFO_FINAL);
@@ -401,10 +402,10 @@ int main(int argc, char** argv){
 
         }
         pthread_join(thread[0], NULL);
-        //pthread_mutex_destroy(&backend.clientes->m);
-        close(backend_fd);
+        pthread_mutex_destroy(&backend.clientes->m);
             
     }
+    close(backend_fd);
     free(backend.clientes); //FAZER ISTO QUANDO O CLIENTE DER LOGOUT
     return 0;
 
