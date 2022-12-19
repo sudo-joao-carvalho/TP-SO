@@ -25,6 +25,10 @@ typedef struct Clientes{
     char nome[TAM_MAX];
     char password[TAM_MAX];
     int saldo;
+    char msgHB[TAM_MAX];
+    int hBeat;
+    int fd;
+    //pthread_mutex_t m;
 } Clientes;
 
 typedef struct Promotor{
@@ -66,10 +70,10 @@ typedef struct {
     char msg[100];
 }dataMSG;
 
-typedef struct {
+/*typedef struct {
     int hBeat;
     //char nomeUsuario[100];
     int fd;
     //char msg[100];
     Clientes cliente;
-}HBEATMSG;
+}HBEATMSG;*/

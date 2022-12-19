@@ -393,6 +393,10 @@ char* verificaUser(Backend* backend, Clientes aux, int clientesCounter){
     return "[ERRO]";
 }
 
+/*void* recebeHeartBeat(void* msgHeartBeat){
+
+}*/
+
 
 int main(int argc, char** argv){
 
@@ -407,6 +411,7 @@ int main(int argc, char** argv){
     struct timeval tv;
     char* clienteValidoMsg;
     dataMSG resposta;
+    pthread_t thread[2];
 
     //CARREGA LOGO AS VARS DE AMBIENTE
     backend.aVars = getAmbientVariables(&backend);
@@ -490,8 +495,8 @@ int main(int argc, char** argv){
                 }
 
                 //ENVIA A RESPOSTA DE VERIFICACAO DE LOGIN AOS USERS
-                sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, aux.pid); //tem que mandar para o aux pois caso o utilizador n exista ele n vai estar no array de users
-                int utilizador_fd = open (UTILIZADOR_FIFO_FINAL, O_WRONLY);
+                sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, aux.pid); //tem que mandar para o aux.pid pois caso o utilizador n exista ele n vai estar no array de users
+                int utilizador_fd = open (UTILIZADOR_FIFO_FINAL, O_WRONLY | O_NONBLOCK);
                 if(utilizador_fd == -1){
                     perror("\n[ERRO] Erro ao abrir o fifo do backend");
                     exit(EXIT_FAILURE);
@@ -503,7 +508,30 @@ int main(int argc, char** argv){
                 if(s2 < 0){
                     printf("Erro ao escrever no pipe\n");
                 }
-                close (utilizador_fd);
+
+                //POR ISTO DENTRO DO WHILE(STRCMP DO COMANDO QUE RECEBE COM EXIT) --> se o comando for exit ele para de mandar heartbeats e elimina da kick ao user
+                //depois dar close(backend_fd) e unlink(BACKEND_FIFO)
+                //RECEBE O HEARBEAT
+                /*if(pthread_create(&thread[0], NULL, &recebeHeartBeat, &backend.clientes) != 0)
+                    return -1;
+                sleep(backend.aVars->HEARTBEAT);*/
+                int i = 0;
+                while(i < backend.aVars->HEARTBEAT){
+                    if(i == backend.aVars->HEARTBEAT - 1){
+                        int s3 = read(backend_fd, &(aux), sizeof(aux)); //com aux da 1
+                        if(s3 < 0){
+                            perror("\n[ERRO] Erro ao ler do pipe\n");
+                        }else if(s3 > 0){
+                            //for(int j = 0; j < clientesCounter; j++){
+                                printf("\nHEARTBEAT:  %s\n",  aux.msgHB);
+                            //}
+                            i = 0;
+                        }
+                    }
+                    i++;
+                }
+                    
+                
 
                 /* printf("\n");
                 for(int i = 0; i < 20; i++){
@@ -516,14 +544,6 @@ int main(int argc, char** argv){
 
                 clientesCounter++;
             }
-
-            //RECEBE O HEARBEAT
-            /*int s3 = read(backend_fd, &(aux), sizeof(aux));
-            if(s3 < 0){
-                perror("\n[ERRO] Erro ao ler do pipe\n");
-            }else if(s3 > 0){
-                printf("\nHEARTBEAT:  %s\n", aux.msgHeartBeat);
-            }*/
         }
     }
     free(backend.itens);

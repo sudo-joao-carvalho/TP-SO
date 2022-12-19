@@ -257,32 +257,21 @@ char* readCommands(char* CommandM){
 
 }
 
-/*void* enviaHEARTBEATorMSG(void* msgHeartBeat){
+void* enviaHEARTBEATorMSG(void* msgHeartBeat){
 
-    HBEATMSG* pMsgHeartBeat = (HBEATMSG*) msgHeartBeat;
+    Backend* pMsgHeartBeat = (Backend*) msgHeartBeat;
 
-    for(int i = 0; i < pMsgHeartBeat->hBeat; i++){
-        if(i == pMsgHeartBeat->hBeat - 1){
-            
-            //printf("msg %s", msg);
-            //printf("numFD %d", numFD);
-
-            int size = write(pMsgHeartBeat->fd, &pMsgHeartBeat->cliente, sizeof(pMsgHeartBeat->cliente)); //envia o username
-            if(size <= 0){
-                perror("\n[ERRO] Erro no envio da mensagem HEARTBEAT\n");
-            }
-            close(pMsgHeartBeat->fd);
-
-            i = 0;
+    //pthread_mutex_lock(&pMsgHeartBeat->clientes->m);
+        int size = write(pMsgHeartBeat->clientes->fd, &pMsgHeartBeat->clientes, sizeof(pMsgHeartBeat->clientes)); //envia o username
+        if(size <= 0){
+            perror("\n[ERRO] Erro no envio da mensagem HEARTBEAT\n");
         }
-        else 
-            continue;
-    }
-        
+    //pthread_mutex_unlock(&pMsgHeartBeat->clientes->m);
+    //close(pMsgHeartBeat->clientes->fd);
 
     pthread_exit(NULL);
 
-}*/
+}
 
 int main(int argc, char** argv){
 
@@ -293,12 +282,13 @@ int main(int argc, char** argv){
     Backend backend;
     backend.clientes = malloc(sizeof(backend.clientes));
     backend.aVars = malloc(sizeof(backend.aVars));
+    //backend.clientes->m = malloc(sizeof(backend.clientes->m));
     int nfd;
     fd_set read_fds;
     struct timeval tv;
     pthread_t thread[2];
+    //pthread_mutex_init(&backend.clientes->m, NULL);
     dataMSG msgFromBackend;
-    HBEATMSG msgHeartBeat;
 
     if(argc < 3){
         printf("[ERRO] Numero de comandos inseridos invalido\n");
@@ -314,6 +304,8 @@ int main(int argc, char** argv){
 
         strcpy(backend.clientes->nome, user);
         strcpy(backend.clientes->password, pass);
+        strcpy(backend.clientes->msgHB, "Continuo Loggado  --> User: ");
+        strcat(backend.clientes->msgHB, backend.clientes->nome);
 
         //ENVIO DAS CREDENCIAIS PARA O BACKEND
         sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, getpid());
@@ -325,13 +317,13 @@ int main(int argc, char** argv){
 
         mkfifo(UTILIZADOR_FIFO_FINAL, 0666);
 
-        int utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_RDWR); //receber as credenciais
+        int utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_RDWR); //receber a msg de login
         if (utilizador_fd == -1){
             printf("Erro ao abrir utilizador");
             return -1;
         }
 
-        int backend_fd = open(BACKEND_FIFO, O_RDWR | O_NONBLOCK); //enviar as credenciais
+        int backend_fd = open(BACKEND_FIFO, O_RDWR); //enviar as credenciais
         if (backend_fd == -1){
             printf("Erro o servidor não está a correr");
             unlink(UTILIZADOR_FIFO_FINAL);
@@ -339,22 +331,17 @@ int main(int argc, char** argv){
         }
 
         backend.clientes[0].pid = getpid();
+        backend.clientes->fd = backend_fd;
         printf("nome: %s\n", backend.clientes->nome);
         printf("password: %s\n", backend.clientes->password);
         printf("pid: %d\n", backend.clientes->pid);
-        printf("heartbeat: %d\n", backend.aVars->HEARTBEAT);
+        printf("backend_fd: %d\n", backend_fd);
+        printf("fd: %d\n", backend.clientes->fd);
         
-        int size = write(backend_fd, &(backend.clientes[0]), sizeof(backend.clientes[0])); //envia o username
+        int size = write(backend_fd, &(backend.clientes[0]), sizeof(backend.clientes[0])); //envia as credenciais
         if(size <= 0){
             printf("\n[ERRO] Erro no envio do username e da password\n");
         }
-        close(backend_fd);
-        //INICIALIZA A ESTRUTURA QUE ENVIA MENSAGEM DE HEARTBEAT PARA O BACKEND
-        /*sprintf(msgHeartBeat.cliente.msgHeartBeat, msgHB, backend.clientes->nome);
-        msgHeartBeat.hBeat = backend.aVars->HEARTBEAT;
-        msgHeartBeat.fd = backend_fd;
-        msgHeartBeat.cliente = backend.clientes[0];*/
-
 
         while(strcmp(command, "exit") != 0){
 
@@ -392,6 +379,8 @@ int main(int argc, char** argv){
 
                 //ASSIGN HEARTBEAT VARIABLES
                 backend.aVars->HEARTBEAT = msgFromBackend.hBeat;
+                backend.clientes->hBeat = msgFromBackend.hBeat;
+                printf("heartbeat: %d\n", backend.clientes->hBeat);
 
                 if(strcmp(msgFromBackend.msg, "Usuario Valido\n") == 0)
                     printf("Login feito com sucesso\n");
@@ -402,19 +391,18 @@ int main(int argc, char** argv){
                     printf("Usuario ja se encontra loggado\n");
                     kill(getpid(), SIGTERM);
                 }
-
-                //if(pthread_create(&thread[0], NULL, &enviaHEARTBEATorMSG, &msgHeartBeat) != 0)
-                    //return -1;
-                
-                //pthread_join(thread[0], NULL);
-
-                
-                //pthread_join(thread[1], NULL); 
                 
             }
 
-        }
+            if(pthread_create(&thread[0], NULL, &enviaHEARTBEATorMSG, &backend.clientes) != 0)
+                    return -1;
+            sleep(backend.aVars->HEARTBEAT);
+                
 
+        }
+        pthread_join(thread[0], NULL);
+        //pthread_mutex_destroy(&backend.clientes->m);
+        close(backend_fd);
             
     }
     free(backend.clientes); //FAZER ISTO QUANDO O CLIENTE DER LOGOUT
