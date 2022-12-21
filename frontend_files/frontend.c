@@ -5,6 +5,21 @@
     printf("Continuo Logged In");
 } */
 
+int backend_fd;
+int utilizador_fd;
+int sinal_fd;
+
+void sigterm_handler(){
+    printf("Login invalido");
+    unlink(UTILIZADOR_FIFO_FINAL);
+    exit(EXIT_FAILURE);
+}
+
+
+int max(int a, int b){
+    return (a > b) ? a : b;
+}
+
 void commandHelp(){
 
     printf("\n\n******************  Commands List  ******************\n\n");
@@ -259,17 +274,23 @@ char* readCommands(char* CommandM){
 
 void* enviaHEARTBEATorMSG(void* msgHeartBeat){
 
-    Backend* pMsgHeartBeat = (Backend*) msgHeartBeat;
+    Clientes* pMsgHeartBeat = (Clientes*) msgHeartBeat;
+    int aux = pMsgHeartBeat->pid;
 
-    pthread_mutex_lock(&pMsgHeartBeat->clientes->m);
-        int size = write(pMsgHeartBeat->clientes->fd, &pMsgHeartBeat->clientes, sizeof(pMsgHeartBeat->clientes)); //envia o username
-        if(size <= 0){
-            perror("\n[ERRO] Erro no envio da mensagem HEARTBEAT\n");
-        }
-    pthread_mutex_unlock(&pMsgHeartBeat->clientes->m);
-    //close(pMsgHeartBeat->clientes->fd);
+    while(1){
+        sleep(pMsgHeartBeat->hBeat);
+        //pthread_mutex_lock(&pMsgHeartBeat->m);
+            sinal_fd = open(SINAL_FIFO, O_RDWR | O_NONBLOCK);
+            int ola = write(sinal_fd, &aux, sizeof(aux));
+            if(ola <= 0){
+                perror("\n[ERRO] Erro no envio da mensagem HEARTBEAT\n");
+            }
+        //pthread_mutex_unlock(&pMsgHeartBeat->m);
+        close(sinal_fd);
+        //close(backend_fd);
+    }
 
-    pthread_exit(NULL);
+    //pthread_exit(NULL);
 
 }
 
@@ -279,17 +300,18 @@ int main(int argc, char** argv){
     char* pass = argv[2];
     char* command;
     char msg[TAM_MAX];
-    Backend backend;
-    backend.clientes = malloc(sizeof(backend.clientes));
-    backend.aVars = malloc(sizeof(backend.aVars));
-    //backend.clientes->m = malloc(sizeof(backend.clientes->m));
+    Clientes cliente;
     int nfd;
     fd_set read_fds;
     struct timeval tv;
-    pthread_t thread[2];
-    pthread_mutex_init(&backend.clientes->m, NULL);
+    pthread_t thread;
+    //pthread_mutex_init(&cliente.m, NULL);
     dataMSG msgFromBackend;
-    int backend_fd;
+    cliente.tempo_log = 0;
+    cliente.is_logged_in = 0;
+
+    signal(SIGTERM, sigterm_handler);
+    cliente.pid = getpid();
 
     if(argc < 3){
         printf("[ERRO] Numero de comandos inseridos invalido\n");
@@ -303,13 +325,11 @@ int main(int argc, char** argv){
 
     if(argc == 3){
 
-        strcpy(backend.clientes->nome, user);
-        strcpy(backend.clientes->password, pass);
-        strcpy(backend.clientes->msgHB, "Continuo Loggado  --> User: ");
-        strcat(backend.clientes->msgHB, backend.clientes->nome);
+        strcpy(cliente.nome, user);
+        strcpy(cliente.password, pass);
 
         //ENVIO DAS CREDENCIAIS PARA O BACKEND
-        sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, getpid());
+        sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, cliente.pid);
 
         if(access(UTILIZADOR_FIFO_FINAL, F_OK) == 0) {
             printf("\n[ERRO] Esse utilizador ja existe\n");
@@ -318,7 +338,7 @@ int main(int argc, char** argv){
 
         mkfifo(UTILIZADOR_FIFO_FINAL, 0666);
 
-        int utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_RDWR); //receber a msg de login
+        utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_RDWR); //receber a msg de login
         if (utilizador_fd == -1){
             printf("Erro ao abrir utilizador");
             return -1;
@@ -331,20 +351,25 @@ int main(int argc, char** argv){
             return -1;
         }
 
-        backend.clientes[0].pid = getpid();
-        backend.clientes->fd = backend_fd;
-        printf("nome: %s\n", backend.clientes->nome);
-        printf("password: %s\n", backend.clientes->password);
-        printf("pid: %d\n", backend.clientes->pid);
+        /*sinal_fd = open(SINAL_FIFO, O_RDWR | O_NONBLOCK);
+        if (sinal_fd == -1)
+        {
+            perror("\nErro ao abrir fifo dos sinais\n");
+            exit(EXIT_FAILURE);
+        }*/
+
+        printf("nome: %s\n", cliente.nome);
+        printf("password: %s\n", cliente.password);
+        printf("pid: %d\n", cliente.pid);
         printf("backend_fd: %d\n", backend_fd);
-        printf("fd: %d\n", backend.clientes->fd);
-        
-        int size = write(backend_fd, &(backend.clientes[0]), sizeof(backend.clientes[0])); //envia as credenciais
+
+        //ENVIO DAS CREDENCIAIS PARA O BACKEND
+        int size = write(backend_fd, &(cliente), sizeof(cliente)); //envia as credenciais
         if(size <= 0){
             printf("\n[ERRO] Erro no envio do username e da password\n");
         }
 
-        while(strcmp(command, "exit") != 0){
+        while(1){
 
             tv.tv_sec = 5;
             tv.tv_usec = 0;
@@ -352,6 +377,7 @@ int main(int argc, char** argv){
             FD_ZERO(&read_fds);
             FD_SET(0, &read_fds);
             FD_SET(utilizador_fd, &read_fds);
+            FD_SET(sinal_fd, &read_fds);
 
             nfd = select(utilizador_fd + 1, &read_fds, NULL, NULL, &tv);
 
@@ -364,49 +390,42 @@ int main(int argc, char** argv){
                 printf("\n Estou a espera de comandos ou de mensagem do backend\n");
             }
 
-            //ENVIO DAS CREDENCIAIS PARA O BACKEND
-
             if(FD_ISSET(0, &read_fds)){ 
                 //Aqui esta a escuta de comandos do utilizador
-                scanf(" %s", command);
-            }else if(FD_ISSET(utilizador_fd, &read_fds)){
+                fgets(cliente.comando, TAM_MAX, stdin);
+                write(backend_fd, &cliente, sizeof(cliente));
+            }
+            
+            if(FD_ISSET(utilizador_fd, &read_fds)){
                 //Aqui esta a escuta que algo seja escrito no pipe utilizador_fd
-                
+
                 //RECEBE MENSAGEM A CONFIRMAR QUE FOI LOGADO
                 int size2 = read(utilizador_fd, &msgFromBackend, sizeof(msgFromBackend));
                 if(size2 < 0){
                     perror("Erro ao ler no pipe\n");
                 }
 
-                //ASSIGN HEARTBEAT VARIABLES
-                backend.aVars->HEARTBEAT = msgFromBackend.hBeat;
-                backend.clientes->hBeat = msgFromBackend.hBeat;
-                printf("heartbeat: %d\n", backend.clientes->hBeat);
-
-                if(strcmp(msgFromBackend.msg, "Usuario Valido\n") == 0)
+                if(strcmp(msgFromBackend.msg, "Usuario Valido\n") == 0){
                     printf("Login feito com sucesso\n");
+                    cliente.is_logged_in = 1;
+                }
                 else if(strcmp(msgFromBackend.msg, "[ERRO] Utilizador nao existe/password invalida\n") == 0){
                     printf("Login invalido\n");
-                    kill(getpid(), SIGTERM);
                 }else if(strcmp(msgFromBackend.msg, "\n[ERRO] Usuario ja esta loggado\n") == 0){
                     printf("Usuario ja se encontra loggado\n");
-                    kill(getpid(), SIGTERM);
                 }
-                
-            }
 
-            if(pthread_create(&thread[0], NULL, &enviaHEARTBEATorMSG, &backend.clientes) != 0)
+                cliente.hBeat = msgFromBackend.hBeat;
+
+                if(pthread_create(&thread, NULL, &enviaHEARTBEATorMSG, &(cliente)) != 0)
                     return -1;
-            sleep(backend.aVars->HEARTBEAT);
-                
+            }/*else if(FD_ISSET(sinal_fd, &read_fds)){
+            }*/
 
         }
-        pthread_join(thread[0], NULL);
-        pthread_mutex_destroy(&backend.clientes->m);
             
     }
-    close(backend_fd);
-    free(backend.clientes); //FAZER ISTO QUANDO O CLIENTE DER LOGOUT
+    //close(backend_fd);
     return 0;
 
 }

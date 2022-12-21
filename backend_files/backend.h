@@ -11,7 +11,7 @@ ambientVars* getAmbientVariables(Backend* backend);
 Itens* readItens(Backend* backend);
 void openPromoter(Backend* backend);
 void interface(Backend* backend);
-char* verificaUser(Backend* backend, Clientes aux, int clientesCounter);
+char* verificaUser(Backend* backend, Clientes aux);
 
 #endif
 

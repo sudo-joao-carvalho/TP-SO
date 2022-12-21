@@ -1,6 +1,11 @@
 #include "backend.h"
 #include "users_lib.h"
 
+int backend_fd;
+int utilizador_fd;
+int sinal_fd;
+int clientesCounter = 0;
+
 int max(int a, int b){
     return (a > b) ? a : b;
 }
@@ -19,16 +24,15 @@ void commandHelp(){
 
 }
 
-void commandsAdministrador(){
+void commandsAdministrador(Backend* backend, char* command){
 
-    char command[TAM_MAX];
     char firstCommand[10];
     char* token;
 
     fflush(stdin);
 
-    printf("Insira o comando de administrador que pretende executar: ");
-    fgets(command, TAM_MAX, stdin);
+    //printf("Insira o comando de administrador que pretende executar: ");
+    //fgets(command, TAM_MAX, stdin);
 
     token = strtok(command, " \n");
 
@@ -46,7 +50,12 @@ void commandsAdministrador(){
 
         if(wordCounts == 1){
             printf("Numero de argumentos valido\n");
-            printf("COMANDO USERS EM EXECUCAO\n");
+            printf("COMANDO USERS EM EXECUCAO\n\n");
+
+            for(int i = 0; i < clientesCounter; i++){
+                printf("User %d: %s\n", i, backend->clientes[i].nome);
+            }
+
         }else if(wordCounts < 1){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] users\n");
@@ -348,7 +357,7 @@ void openPromoter(Backend* backend){
     
 }*/
 
-char* verificaUser(Backend* backend, Clientes aux, int clientesCounter){
+char* verificaUser(Backend* backend, Clientes aux){
 
     fflush(stdin);
 
@@ -363,12 +372,13 @@ char* verificaUser(Backend* backend, Clientes aux, int clientesCounter){
 
     if(clientesCounter <= 19){
         if(isUserValid(aux.nome, aux.password) == 0){
+            kill(aux.pid, SIGTERM); //dar kill ao da nova execucao
             return "[ERRO] Utilizador nao existe/password invalida\n";
         }else if(isUserValid(aux.nome, aux.password) == 1){
 
             for(int i = 0; i < clientesCounter; i++){
                 if(strcmp(backend->clientes[i].nome, aux.nome) == 0){
-                    //kill(aux.pid, SIGTERM); dar kill ao da nova execucao
+                    kill(aux.pid, SIGTERM); //dar kill ao da nova execucao
                     return "\n[ERRO] Usuario ja esta loggado\n";
                 }else continue;
             }
@@ -395,15 +405,41 @@ char* verificaUser(Backend* backend, Clientes aux, int clientesCounter){
 
 void* recebeHeartBeat(void* msgHeartBeat){
 
-    Clientes* pMsgHeartBeat = (Clientes*) msgHeartBeat;
+    Backend* pMsgHeartBeat = (Backend*) msgHeartBeat;
 
-    //printf("ola");
+    while(1){
+        sleep(1);
+        pMsgHeartBeat->tempo_run++;
 
-    pthread_mutex_lock(&pMsgHeartBeat->m);
-        printf("\nHEARTBEAT:  %s\n",  pMsgHeartBeat->msgHB);
-    pthread_mutex_unlock(&pMsgHeartBeat->m);
-  
-    pthread_exit(NULL);
+        for(int i = 0; i < clientesCounter; i++){
+            if(pMsgHeartBeat->clientes[i].pid != 0){
+                pMsgHeartBeat->clientes[i].tempo_log++;
+
+                if(pMsgHeartBeat->clientes[i].tempo_log > pMsgHeartBeat->aVars->HEARTBEAT){
+                    //remove filho da puta
+                    pMsgHeartBeat->clientes[i] = pMsgHeartBeat->clientes[i + 1];
+                    clientesCounter--;
+                }
+            }
+        }
+
+        /*for(int i = 0; i < clientesCounter; i++){
+            if(pMsgHeartBeat->clientes[i].pid != 0){
+                pMsgHeartBeat->clientes[i].tempo_log++;
+
+                if(pMsgHeartBeat->clientes[i].tempo_log > pMsgHeartBeat->aVars->HEARTBEAT){
+                    pthread_mutex_lock(&pMsgHeartBeat->clientes[i].m);
+                        printf("\nHEARTBEAT:  %s\n",  pMsgHeartBeat->clientes[i].msgHB);
+                    pthread_mutex_unlock(&pMsgHeartBeat->clientes[i].m);
+                }
+            }
+        }*/
+        //close(utilizador_fd);
+
+        
+
+    }
+    //pthread_exit(NULL);
 
 }
 
@@ -411,18 +447,19 @@ void* recebeHeartBeat(void* msgHeartBeat){
 int main(int argc, char** argv){
 
     Backend backend;
-    backend.itens = malloc(30 * sizeof(backend.itens));
-    backend.aVars = malloc(sizeof(backend.aVars));
-    backend.clientes = malloc(20 * sizeof(backend.clientes));
+    backend.itens = malloc(30 * sizeof(*backend.itens));
+    backend.aVars = malloc(sizeof(*backend.aVars));
+    backend.clientes = malloc(20 * sizeof(*backend.clientes));
     Clientes aux;
-    int clientesCounter = 0;
     int nfd;
     fd_set read_fds;
     struct timeval tv;
     char* clienteValidoMsg;
     dataMSG resposta;
-    pthread_t thread[20];
+    pthread_t thread;
     pthread_mutex_init(&backend.clientes->m, NULL);
+    aux.is_logged_in = 0;
+    char command[TAM_MAX];
 
     //CARREGA LOGO AS VARS DE AMBIENTE
     backend.aVars = getAmbientVariables(&backend);
@@ -448,15 +485,35 @@ int main(int argc, char** argv){
         printf("\n[ERRO] Erro na criacao do fifo do backend\n");
         return -1;
     }
-    printf("FIFO Criado...\n");
+    printf("FIFO Backend Criado...\n");
+
+    if(mkfifo(SINAL_FIFO, 0666) == -1){
+        if(errno == EEXIST){ //existe apenas um backend
+            printf("\n[ERRO] Servidor em execução ou fifo ja existe\n");
+            return -1;
+        }
+        printf("\n[ERRO] Erro na criacao do fifo do backend\n");
+        return -1;
+    }
+    printf("FIFO Sinais Criado...\n");
 
     //find . -type p -delete
 
-    int backend_fd = open(BACKEND_FIFO, O_RDONLY);
+    backend_fd = open(BACKEND_FIFO, O_RDWR);
     if(backend_fd == -1){
         printf("\n[ERRO] Erro ao abrir o fifo do backend");
         exit(EXIT_FAILURE);
     }
+
+    sinal_fd = open(SINAL_FIFO, O_RDWR | O_NONBLOCK);
+    if (sinal_fd == -1)
+    {
+        perror("\nErro ao abrir fifo dos sinais\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if(pthread_create(&thread, NULL, &recebeHeartBeat, &(backend)) != 0)
+        return -1;
 
     while(1){
         //interface(/*textPp, itens, aVars*/&backend);
@@ -466,8 +523,9 @@ int main(int argc, char** argv){
         FD_ZERO(&read_fds);
         FD_SET(0, &read_fds);
         FD_SET(backend_fd, &read_fds);
+        FD_SET(sinal_fd, &read_fds);
 
-        nfd = select(backend_fd + 1, &read_fds, NULL, NULL, &tv);
+        nfd = select(max(backend_fd, sinal_fd) + 1, &read_fds, NULL, NULL, &tv);
         if(nfd == -1){
             printf("\nNada a receber\n");
             exit(0);
@@ -479,15 +537,22 @@ int main(int argc, char** argv){
 
         if(FD_ISSET(0, &read_fds)){
             //Aqui esta a escuta pelos comandos introduzidos pelo administrador
+            fgets(command, TAM_MAX, stdin);
+            commandsAdministrador(&backend, command);
 
-        }else if(FD_ISSET(backend_fd, &read_fds)){
+        }
+        
+        if(FD_ISSET(backend_fd, &read_fds)){
             //Aqui esta a escuta dos utilizadores que vai receber pelo named_pipe
-            int size = read(backend_fd, &aux, sizeof(aux)); //ler o cliente para uma estrutura auxiliar para verificar se é um usuario valido e assim n ter de o adicionar a estrutura de clientes caso seja invalido
             
+            int size = read(backend_fd, &aux, sizeof(aux)); //ler o cliente para uma estrutura auxiliar para verificar se é um usuario valido e assim n ter de o adicionar a estrutura de clientes caso seja invalido
             if(size < 0){
                 printf("\n[ERRO] Erro ao ler do pipe\n");
-            }else if(size > 0){
-                clienteValidoMsg = verificaUser(&backend, aux, clientesCounter);
+            }
+
+            if(aux.is_logged_in == 0){
+
+                clienteValidoMsg = verificaUser(&backend, aux);
 
                 strcpy(resposta.msg, clienteValidoMsg);
                 resposta.hBeat = backend.aVars->HEARTBEAT;
@@ -496,16 +561,14 @@ int main(int argc, char** argv){
                 if(strcmp(clienteValidoMsg, "Usuario Valido\n") == 0){
                     printf("\nUTILIZADOR_%d", backend.clientes[clientesCounter].pid);
                     printf("\n recebi o username [%s] e a password[%s]", backend.clientes[clientesCounter].nome, backend.clientes[clientesCounter].password);
-                    if (strcmp("sair\n", backend.clientes[clientesCounter].nome)==0){
-                        close(backend_fd);
-                        unlink (BACKEND_FIFO);
-                        return 1;
-                    }
+                    aux.is_logged_in = 1;
+                    backend.clientes[clientesCounter].is_logged_in = 1;
+                    clientesCounter++;
                 }
 
                 //ENVIA A RESPOSTA DE VERIFICACAO DE LOGIN AOS USERS
-                sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, aux.pid); //tem que mandar para o aux.pid pois caso o utilizador n exista ele n vai estar no array de users
-                int utilizador_fd = open (UTILIZADOR_FIFO_FINAL, O_WRONLY | O_NONBLOCK);
+                sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, aux.pid); 
+                utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY);
                 if(utilizador_fd == -1){
                     perror("\n[ERRO] Erro ao abrir o fifo do utilizador");
                     exit(EXIT_FAILURE);
@@ -518,66 +581,38 @@ int main(int argc, char** argv){
                     printf("Erro ao escrever no pipe\n");
                 }
 
-                //POR ISTO DENTRO DO WHILE(STRCMP DO COMANDO QUE RECEBE COM EXIT) --> se o comando for exit ele para de mandar heartbeats e elimina da kick ao user
-                //depois dar close(backend_fd) e unlink(BACKEND_FIFO)
-                //RECEBE O HEARBEAT
-                
-                /*while(1){
-                    for(int j = 0; j < clientesCounter; j++){
-                        //aux.fd = backend_fd;
-                        backend.clientes[j].fd = backend_fd;
-                        //strcpy(backend.clientes[clientesCounter].msgHB, aux.msgHB);
-
-                        //printf("A  %s  ", backend.clientes[clientesCounter].msgHB);
-                        if(pthread_create(&thread[j], NULL, &recebeHeartBeat, &backend.clientes[j]) != 0)
-                            return -1;
-                    }
-
-                    for(int j = 0; j < clientesCounter; j++){
-                        if (pthread_join(thread[j], NULL) != 0){
-                            return -1;
-                        }
-                    }
-                }*/
-                
-                //sleep(backend.aVars->HEARTBEAT);
-
-                int i = 0;
-                while(i < backend.aVars->HEARTBEAT){
-                    if(i == backend.aVars->HEARTBEAT - 1){
-                        int s3 = read(backend_fd, &(aux), sizeof(aux)); //com aux da 1
-
-                        strcpy(backend.clientes[clientesCounter].msgHB, aux.msgHB);
-                        if(s3 < 0){
-                            perror("\n[ERRO] Erro ao ler do pipeAAA\n");
-                        }else if(s3 > 0){
-                            printf("\nHEARTBEAT:  %s\n",  aux.msgHB);
-
-                            i = 0;
-                        }
-                    }
-                    i++;
-                }
-
-                /*int s3 = read(backend_fd, &(backend.clientes[clientesCounter]), sizeof(backend.clientes[clientesCounter]));
-                if(s3 < 0){
-                    perror("\n[ERRO] Erro ao ler do pipe\n");
-                }else if(s3 > 0){
-                    //aux.fd = backend_fd;
-                    backend.clientes[clientesCounter].fd = backend_fd;
-
-                    //printf("A  %s  ", backend.clientes[clientesCounter].msgHB);
-                    for(int i = 0; i < clientesCounter; i++){
-                        if(pthread_create(&thread[i], NULL, &recebeHeartBeat, &backend.clientes[i]) != 0)
-                            return -1;
-                    }
-                }*/
-
-                clientesCounter++;
+            }else if(aux.is_logged_in == 1){
+                //read(backend_fd, &aux, sizeof(aux)); //lê com o comando
+                printf("\ncomando de %s: %s\n", aux.nome, aux.comando);
             }
+
+            /*for(int i = 0; i < clientesCounter; i++){
+                if(strcmp(aux.nome, backend.clientes[i].nome) == 0){
+                    while(strcmp(backend.clientes[i].comando, "exit") != 0){
+                        read(backend_fd, &backend.clientes[i], sizeof(backend.clientes[i])); //lê com o comando;
+                        printf("comando: %s", backend.clientes[i].comando);
+                    }
+                }
+            }*/
+
+        }
+        
+        if(FD_ISSET(sinal_fd, &read_fds)){
+
+            //POR ISTO DENTRO DO WHILE(STRCMP DO COMANDO QUE RECEBE COM EXIT) --> se o comando for exit ele para de mandar heartbeats e elimina da kick ao user
+            //depois dar close(backend_fd) e unlink(BACKEND_FIFO)
+            //RECEBE O HEARBEAT
+
+            int pid;
+
+            int a = read(sinal_fd, &pid, sizeof(pid));
+            if(a < 0)
+                printf("\n[ERRO] Erro ao ler do pipe\n");
+            else
+                printf("\npid: %d\n", pid);
+
         }
     }
-    pthread_mutex_destroy(&backend.clientes->m);
     free(backend.itens);
     return 0;
 
