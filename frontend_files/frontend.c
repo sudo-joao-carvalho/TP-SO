@@ -371,9 +371,6 @@ int main(int argc, char** argv){
             printf("\n[ERRO] Erro no envio do username e da password\n");
         }
 
-        if(pthread_create(&thread_hb, NULL, &enviaHEARTBEAT, &(cliente)) != 0)
-            return -1;
-
         while(1){
 
             tv.tv_sec = 5;
@@ -429,6 +426,9 @@ int main(int argc, char** argv){
                 }
 
                 cliente.hBeat = msgFromBackend.hBeat;
+
+                if(pthread_create(&thread_hb, NULL, &enviaHEARTBEAT, &(cliente)) != 0)
+                    return -1;
 
             }
 

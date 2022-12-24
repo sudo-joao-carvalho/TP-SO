@@ -410,7 +410,6 @@ void resetUserTime(Backend* backend, Clientes aux){
         }
     }
 }
-
 char* verificaUser(Backend* backend, Clientes aux){
 
     fflush(stdin);
@@ -457,6 +456,16 @@ char* verificaUser(Backend* backend, Clientes aux){
     return "[ERRO]";
 }
 
+/*void* heartBeatCheck(void* backendAux){
+
+    Backend* pBackendAux = (Backend*) backendAux;
+
+    for(int i = 0; i < clientesCounter; i++){
+        if
+    }
+
+}*/
+
 void* inactivityThread(void* msgHeartBeat){
 
     Backend* pMsgHeartBeat = (Backend*) msgHeartBeat;
@@ -474,6 +483,9 @@ void* inactivityThread(void* msgHeartBeat){
 
                 if(pMsgHeartBeat->clientes[i].tempo_log > pMsgHeartBeat->aVars->HEARTBEAT){
                     strcpy(resposta_t.msg, messageI);
+
+                    printf("\nCliente %s foi removido da plataforma\n", pMsgHeartBeat->clientes[i].nome);
+
                     kill(pMsgHeartBeat->clientes[i].pid, SIGQUIT);
                     removeUser(pMsgHeartBeat, pMsgHeartBeat->clientes[i]);
                     clientesCounter--;
@@ -653,9 +665,14 @@ int main(int argc, char** argv){
             else
                 printf("\npid: %d\n", pid);
 
+            /*for(int i = 0; i < clientesCounter; i++){
+                if(pid == backend.clientes[i].pid + 1){
+                    printf("\nCliente %s foi removido da plataforma\n", backend.clientes[i].nome);
 
-            /*if(pthread_create(&thread_heartBeat, NULL, &heartBeatCheck, &(backend)) != 0)
-                return -1;*/
+                    kill(backend.clientes[i].pid, SIGQUIT);
+                    removeUser(&backend, backend.clientes[i]);
+                }
+            }*/
 
 
         }
