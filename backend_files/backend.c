@@ -481,7 +481,7 @@ void* inactivityThread(void* msgHeartBeat){
             if(pMsgHeartBeat->clientes[i].pid != 0){ //verifica que o user existe
                 pMsgHeartBeat->clientes[i].tempo_log++; //aumenta o tempo de log in
 
-                if(pMsgHeartBeat->clientes[i].tempo_log > pMsgHeartBeat->aVars->HEARTBEAT){
+                if(pMsgHeartBeat->clientes[i].tempo_log > 2 * pMsgHeartBeat->aVars->HEARTBEAT){
                     strcpy(resposta_t.msg, messageI);
 
                     printf("\nCliente %s foi removido da plataforma\n", pMsgHeartBeat->clientes[i].nome);
@@ -491,15 +491,7 @@ void* inactivityThread(void* msgHeartBeat){
                     clientesCounter--;
                     break;
                 }
-            }/*else{
-                strcpy(resposta_t.msg, messageD);
-                printf("inactivity msg: %s", resposta_t.msg);
-                write(utilizador_fd, &resposta_t, sizeof(resposta_t));
-                kill(pMsgHeartBeat->clientes[i].pid, SIGTERM);
-                
-                pMsgHeartBeat->clientes[i] = pMsgHeartBeat->clientes[i + 1];
-                clientesCounter--;
-            }*/
+            }
         }
 
     }
