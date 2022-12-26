@@ -80,14 +80,19 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
                             removeItem(backend);
                             itensCounter--;
 
+                            close(utilizador_fd);
+
                         }else if(valor < backend->itens[i].comprar_ja){ //por licitacoes
                             strcpy(backend->itens[i].nomeC, aux->nome); //tracking de quem é ultimo licitador
                             backend->itens[i].preco_base = valor;
                             strcpy(buyStatus.msg, "Licitacao feita\n");
                             write(utilizador_fd, &buyStatus, sizeof(buyStatus));
 
-                            if(backend->itens[i].tempo == 0){
+                            /*if(backend->itens[i].tempo == 0){
                                 if(strcmp(backend->itens[i].nomeC, aux->nome) == 0){
+                                    strcpy(buyStatus.msg, "Item adquirido\n");
+                                    write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+
                                     aux->saldo = aux->saldo - backend->itens[i].preco_base ;
                                     updateUserBalance(aux->nome, aux->saldo);
                                     saveUsersFile(backend->aVars->FUSERS);
@@ -95,25 +100,31 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
                                     removeItem(backend);
                                     itensCounter--;
                                 }
-                            }
+                            }*/ 
+
+                            close(utilizador_fd);
                         }
                     }else{
                         strcpy(buyStatus.msg, "\n\tSaldo Insuficiente\n");
                         write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+                        close(utilizador_fd);
                     }
                 }else{
                     strcpy(buyStatus.msg, "\n\tInsira um valor maior que o preco base do item\n");
                     write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+                    close(utilizador_fd);
                 }
                 
             }else{
                 strcpy(buyStatus.msg, "\n\tInsira um valor maior que o preco base do item\n");
                 write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+                close(utilizador_fd);
             }
 
         }else{
             strcpy(buyStatus.msg, "\nItem nao existente\n");
             write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+            close(utilizador_fd);
         }
     }
 
@@ -276,15 +287,19 @@ void commandsAdministrador(Backend* backend, char* command){
             printf("Numero de argumentos valido\n");
             printf("COMANDO LIST EM EXECUCAO\n");
 
-            for(int i = 0; i < itensCounter; i++){
-                printf("\nItem %d:\n", backend->itens[i].id);
-                printf("\tNome: %s\n", backend->itens[i].nome);
-                printf("\tCategoria: %s\n", backend->itens[i].categoria);
-                printf("\tPreco Base: %d\n", backend->itens[i].preco_base);
-                printf("\tComprar Ja: %d\n", backend->itens[i].comprar_ja);
-                printf("\tTempo: %d\n", backend->itens[i].tempo);
-                printf("\tNome Vendedor: %s\n", backend->itens[i].nomeV);
-                printf("\tNome Comprador: %s\n", backend->itens[i].nomeC);
+            if(itensCounter == 0){
+                printf("\n\tNenhuma item a ser licitado neste momento\n");
+            }else{
+                for(int i = 0; i < itensCounter; i++){
+                    printf("\nItem %d:\n", backend->itens[i].id);
+                    printf("\tNome: %s\n", backend->itens[i].nome);
+                    printf("\tCategoria: %s\n", backend->itens[i].categoria);
+                    printf("\tPreco Base: %d\n", backend->itens[i].preco_base);
+                    printf("\tComprar Ja: %d\n", backend->itens[i].comprar_ja);
+                    printf("\tTempo: %d\n", backend->itens[i].tempo);
+                    printf("\tNome Vendedor: %s\n", backend->itens[i].nomeV);
+                    printf("\tNome Comprador: %s\n", backend->itens[i].nomeC);
+                }
             }
 
         }else if(wordCounts < 1){
@@ -607,7 +622,7 @@ void inicializaItens(Backend* backend){
         strcpy(backend->itens[i].categoria, "c");
         backend->itens[i].preco_base = 0;
         backend->itens[i].comprar_ja = 0;
-        backend->itens[i].tempo = 0;
+        backend->itens[i].tempo = 100000000;
         strcpy(backend->itens[i].nomeV, "nV");
         strcpy(backend->itens[i].nomeC, "nC");
     }
@@ -731,6 +746,53 @@ char* verificaUser(Backend* backend, Clientes aux){
     return "[ERRO]";
 }
 
+void* removeItemPorLicitacao(void* backend_aux){
+    
+    Backend* pBackend_aux = (Backend*) backend_aux;
+    dataMSG resposta_t;
+
+    while(1){
+
+        for(int i = 0; i < itensCounter; i++){
+            //while(pBackend_aux->itens[i].tempo > -1)
+
+            if(pBackend_aux->itens[i].tempo == -1){
+
+                if(strcmp(pBackend_aux->itens[i].nomeC, "nC") == 0){
+                    printf("Ninguem licitou no item %s", pBackend_aux->itens[i].nome);
+                    removeItem(pBackend_aux);
+                    itensCounter--;
+                }
+
+                for(int j = 0; j < clientesCounter; j++){
+                    if(strcmp(pBackend_aux->clientes[j].nome, pBackend_aux->itens[i].nomeC) == 0){
+
+                        //sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR,  pBackend_aux->clientes[j].pid); 
+                        //printf("\nUTILIZADOR_FIFO_FINAL\n: %s", UTILIZADOR_FIFO_FINAL);
+                        //utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY | O_NONBLOCK);
+
+                        //strcpy(resposta_t.msg, "Item adquirido\n");
+                        //write(utilizador_fd, &resposta_t, sizeof(resposta_t));
+
+                        printf("Item adquirido\n");
+
+                        pBackend_aux->clientes[j].saldo = pBackend_aux->clientes[j].saldo - pBackend_aux->itens[i].preco_base ;
+                        updateUserBalance(pBackend_aux->clientes[j].nome, pBackend_aux->clientes[j].saldo);
+                        saveUsersFile(pBackend_aux->aVars->FUSERS);
+                        close(utilizador_fd);
+                        removeItem(pBackend_aux);
+                        itensCounter--;
+                    }
+                }
+            }
+
+        }
+
+    }
+
+
+}
+
 void* inactivityThread(void* msgHeartBeat){
 
     Backend* pMsgHeartBeat = (Backend*) msgHeartBeat;
@@ -741,9 +803,10 @@ void* inactivityThread(void* msgHeartBeat){
         sleep(1);
         pMsgHeartBeat->tempo_run++;
 
-        for(int i = 0; i < itensCounter; i++){
-            pMsgHeartBeat->itens[i].tempo--;
-        }
+        if(itensCounter > 0)
+            for(int i = 0; i < itensCounter; i++){
+                pMsgHeartBeat->itens[i].tempo--;
+            }
 
         for(int i = 0; i < clientesCounter; i++){
             if(pMsgHeartBeat->clientes[i].pid != 0){ //verifica que o user existe
@@ -782,6 +845,7 @@ int main(int argc, char** argv){
     dataMSG resposta;
     pthread_t thread_inacitvity;
     pthread_t thread_heartBeat;
+    pthread_t thread_removeItemVendidoPorLicitacoes;
     pthread_mutex_init(&backend.clientes->m, NULL);
     aux.is_logged_in = 0;
     char command[TAM_MAX];
@@ -840,6 +904,9 @@ int main(int argc, char** argv){
     }
 
     if(pthread_create(&thread_inacitvity, NULL, &inactivityThread, &(backend)) != 0)
+        return -1;
+
+    if(pthread_create(&thread_removeItemVendidoPorLicitacoes, NULL, &removeItemPorLicitacao, &(backend)) != 0)
         return -1;
 
     while(1){

@@ -76,7 +76,7 @@ void readCommands(char* CommandM, Clientes aux){
 
             write(backend_fd, &aux, sizeof(aux));
 
-            //sell mota automoveis 10 20 100
+            //sell mota automoveis 10 20 10
         }else if(wordCounts < 6){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>\n");
@@ -429,6 +429,8 @@ int main(int argc, char** argv){
                         close(utilizador_fd);
                     }
                 }
+
+                printf("msgFromBackend.msg: %s", msgFromBackend.msg);
 
                 if(cliente.is_logged_in == 1){
 
