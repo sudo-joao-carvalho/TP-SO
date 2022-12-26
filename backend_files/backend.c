@@ -61,7 +61,7 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
         token = strtok(NULL, " ");
     }
 
-    printf("aux_saldo de %s: %d", aux->nome, aux->saldo);
+    //printf("aux_saldo de %s: %d", aux->nome, aux->saldo);
 
     for(int i = 0; i < itensCounter; i++){
         if(id == i + 1){
@@ -73,14 +73,29 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
                             strcpy(buyStatus.msg, "Item adquirido\n");
                             write(utilizador_fd, &buyStatus, sizeof(buyStatus));
 
-                            //aux->saldo = aux->saldo - valor;
-                            //updateUserBalance(aux->nome, aux->saldo);
+                            aux->saldo = aux->saldo - valor;
+                            updateUserBalance(aux->nome, aux->saldo);
+                            saveUsersFile(backend->aVars->FUSERS);
+
+                            removeItem(backend);
+                            itensCounter--;
 
                         }else if(valor < backend->itens[i].comprar_ja){ //por licitacoes
                             strcpy(backend->itens[i].nomeC, aux->nome); //tracking de quem é ultimo licitador
                             backend->itens[i].preco_base = valor;
                             strcpy(buyStatus.msg, "Licitacao feita\n");
                             write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+
+                            if(backend->itens[i].tempo == 0){
+                                if(strcmp(backend->itens[i].nomeC, aux->nome) == 0){
+                                    aux->saldo = aux->saldo - backend->itens[i].preco_base ;
+                                    updateUserBalance(aux->nome, aux->saldo);
+                                    saveUsersFile(backend->aVars->FUSERS);
+
+                                    removeItem(backend);
+                                    itensCounter--;
+                                }
+                            }
                         }
                     }else{
                         strcpy(buyStatus.msg, "\n\tSaldo Insuficiente\n");
@@ -259,7 +274,7 @@ void commandsAdministrador(Backend* backend, char* command){
 
         if(wordCounts == 1){
             printf("Numero de argumentos valido\n");
-            printf("COMANDO USERS EM EXECUCAO\n");
+            printf("COMANDO LIST EM EXECUCAO\n");
 
             for(int i = 0; i < itensCounter; i++){
                 printf("\nItem %d:\n", backend->itens[i].id);
@@ -287,8 +302,6 @@ void commandsAdministrador(Backend* backend, char* command){
             printf("COMANDO KICK EM EXECUCAO\n");
 
             aux_username[strcspn(aux_username, "\n")] = 0;
-
-            printf("aux_nome: {%s}", aux_username);
 
             for(int i = 0; i < clientesCounter; i++){
                 if(strcmp(backend->clientes[i].nome, aux_username) == 0){
@@ -573,6 +586,19 @@ void openPromoter(Backend* backend){
     //Leitura dos comandos 1a meta
     
 }*/
+void resetaItens(Itens* item){
+
+    item->id = 0;
+    strcpy(item->nome, "n");
+    strcpy(item->categoria, "c");
+    item->preco_base = 0;
+    item->comprar_ja = 0;
+    item->tempo = 0;
+    strcpy(item->nomeV, "nV");
+    strcpy(item->nomeC, "nC");
+
+}
+
 
 void inicializaItens(Backend* backend){
     for(int i = 0; i < 30; i++){
@@ -584,6 +610,18 @@ void inicializaItens(Backend* backend){
         backend->itens[i].tempo = 0;
         strcpy(backend->itens[i].nomeV, "nV");
         strcpy(backend->itens[i].nomeC, "nC");
+    }
+}
+
+void removeItem(Backend* backend){
+
+    for(int i = 0; i < itensCounter; i++){
+        if(strcmp(backend->itens[i + 1].nome, "n") == 0){
+            resetaItens(&(backend->itens[i]));
+        }else{
+            backend->itens[i] = backend->itens[i + 1];
+            break;
+        }
     }
 }
 
@@ -702,6 +740,10 @@ void* inactivityThread(void* msgHeartBeat){
     while(1){
         sleep(1);
         pMsgHeartBeat->tempo_run++;
+
+        for(int i = 0; i < itensCounter; i++){
+            pMsgHeartBeat->itens[i].tempo--;
+        }
 
         for(int i = 0; i < clientesCounter; i++){
             if(pMsgHeartBeat->clientes[i].pid != 0){ //verifica que o user existe
