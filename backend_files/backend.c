@@ -61,18 +61,20 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
         token = strtok(NULL, " ");
     }
 
+    printf("aux_saldo de %s: %d", aux->nome, aux->saldo);
+
     for(int i = 0; i < itensCounter; i++){
         if(id == i + 1){
             if(strcmp(backend->itens[i].nomeC, "nC") == 0 || valor <= backend->itens[i].comprar_ja){
                 if(valor >= backend->itens[i].preco_base){
-                    if(aux->saldo > valor){
+                    if(aux->saldo >= valor){
                         if(valor == backend->itens[i].comprar_ja){ //compra imediata
                             strcpy(backend->itens[i].nomeC, aux->nome);
                             strcpy(buyStatus.msg, "Item adquirido\n");
                             write(utilizador_fd, &buyStatus, sizeof(buyStatus));
 
-                            aux->saldo = aux->saldo - valor;
-                            updateUserBalance(aux->nome, aux->saldo);
+                            //aux->saldo = aux->saldo - valor;
+                            //updateUserBalance(aux->nome, aux->saldo);
 
                         }else if(valor < backend->itens[i].comprar_ja){ //por licitacoes
                             strcpy(backend->itens[i].nomeC, aux->nome); //tracking de quem é ultimo licitador
@@ -241,7 +243,8 @@ void commandsAdministrador(Backend* backend, char* command){
             printf("COMANDO USERS EM EXECUCAO\n\n");
 
             for(int i = 0; i < clientesCounter; i++){
-                printf("User %d: %s\n", i, backend->clientes[i].nome);
+                printf("User %d: %s", i, backend->clientes[i].nome);
+                printf("\tSaldo: %d\n", backend->clientes[i].saldo);
             }
 
         }else if(wordCounts < 1){
@@ -670,8 +673,8 @@ char* verificaUser(Backend* backend, Clientes aux){
                 }else continue;
             }
 
+            aux.saldo = getUserBalance(aux.nome);
             backend->clientes[clientesCounter] = aux;
-            backend->clientes[clientesCounter].saldo = getUserBalance(backend->clientes[clientesCounter].nome);
 
             //updateUserBalance(aux.nome, aux.nome);
 
@@ -842,7 +845,7 @@ int main(int argc, char** argv){
                     printf("\n recebi o username [%s] e a password[%s]", backend.clientes[clientesCounter].nome, backend.clientes[clientesCounter].password);
                     aux.is_logged_in = 1;
                     backend.clientes[clientesCounter].is_logged_in = 1;
-                    clientesCounter++;
+
                 }
 
                 //ENVIA A RESPOSTA DE VERIFICACAO DE LOGIN AOS USERS
@@ -854,6 +857,7 @@ int main(int argc, char** argv){
                 }
 
                 resposta.pid = getpid();
+                //resposta.clienteSaldo = backend.clientes[clientesCounter].saldo;
 
                 int s2 = write (utilizador_fd, &resposta, sizeof(resposta));
                 if(s2 < 0){
@@ -861,7 +865,10 @@ int main(int argc, char** argv){
                 }
                 close(utilizador_fd);
 
+                clientesCounter++;
+
             }else if(aux.is_logged_in == 1){
+                aux.saldo = getUserBalance(aux.nome);
                 printf("\nCOMANDO de %s: %s\n", aux.nome, aux.comando);
 
                 //retomar aqui

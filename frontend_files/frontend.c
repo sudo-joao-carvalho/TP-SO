@@ -398,6 +398,7 @@ int main(int argc, char** argv){
                 //Aqui esta a escuta de comandos do utilizador
 
                 fgets(cliente.comando, TAM_MAX, stdin);
+                printf("cliente.comando: %s\n", cliente.comando);
                 cliente.tempo_log = 0;
                 readCommands(cliente.comando, cliente);
 
@@ -428,7 +429,7 @@ int main(int argc, char** argv){
                         close(utilizador_fd);
                     }
                 }
-                
+
                 if(cliente.is_logged_in == 1){
 
                     if(cliente.pid == msgFromBackend.pid){
