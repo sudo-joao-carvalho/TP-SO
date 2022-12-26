@@ -63,71 +63,77 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
 
     //printf("aux_saldo de %s: %d", aux->nome, aux->saldo);
 
-    for(int i = 0; i < itensCounter; i++){
-        if(id == i + 1){
-            if(strcmp(backend->itens[i].nomeC, "nC") == 0 || valor <= backend->itens[i].comprar_ja){
-                if(valor >= backend->itens[i].preco_base){
-                    if(aux->saldo >= valor){
-                        if(valor == backend->itens[i].comprar_ja){ //compra imediata
-                            strcpy(backend->itens[i].nomeC, aux->nome);
-                            strcpy(buyStatus.msg, "Item adquirido\n");
+    if(itensCounter > 0){
+        for(int i = 0; i < itensCounter; i++){
+            if(id == backend->itens[i].id){
+                if(strcmp(backend->itens[i].nomeC, "nC") == 0 || valor <= backend->itens[i].comprar_ja){
+                    if(valor >= backend->itens[i].preco_base){
+                        if(aux->saldo >= valor){
+                            if(valor == backend->itens[i].comprar_ja){ //compra imediata
+                                strcpy(backend->itens[i].nomeC, aux->nome);
+                                strcpy(buyStatus.msg, "Item adquirido\n");
+                                write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+
+                                aux->saldo = aux->saldo - valor;
+                                updateUserBalance(aux->nome, aux->saldo);
+                                saveUsersFile(backend->aVars->FUSERS);
+
+                                removeItem(backend);
+                                itensCounter--;
+
+                                close(utilizador_fd);
+
+                            }else if(valor < backend->itens[i].comprar_ja){ //por licitacoes
+                                strcpy(backend->itens[i].nomeC, aux->nome); //tracking de quem é ultimo licitador
+                                backend->itens[i].preco_base = valor;
+                                strcpy(buyStatus.msg, "Licitacao feita\n");
+                                write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+
+                                /*if(backend->itens[i].tempo == 0){
+                                    if(strcmp(backend->itens[i].nomeC, aux->nome) == 0){
+                                        strcpy(buyStatus.msg, "Item adquirido\n");
+                                        write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+
+                                        aux->saldo = aux->saldo - backend->itens[i].preco_base ;
+                                        updateUserBalance(aux->nome, aux->saldo);
+                                        saveUsersFile(backend->aVars->FUSERS);
+
+                                        removeItem(backend);
+                                        itensCounter--;
+                                    }
+                                }*/ 
+
+                                close(utilizador_fd);
+                            }
+                        }else{
+                            strcpy(buyStatus.msg, "\n\tSaldo Insuficiente\n");
                             write(utilizador_fd, &buyStatus, sizeof(buyStatus));
-
-                            aux->saldo = aux->saldo - valor;
-                            updateUserBalance(aux->nome, aux->saldo);
-                            saveUsersFile(backend->aVars->FUSERS);
-
-                            removeItem(backend);
-                            itensCounter--;
-
-                            close(utilizador_fd);
-
-                        }else if(valor < backend->itens[i].comprar_ja){ //por licitacoes
-                            strcpy(backend->itens[i].nomeC, aux->nome); //tracking de quem é ultimo licitador
-                            backend->itens[i].preco_base = valor;
-                            strcpy(buyStatus.msg, "Licitacao feita\n");
-                            write(utilizador_fd, &buyStatus, sizeof(buyStatus));
-
-                            /*if(backend->itens[i].tempo == 0){
-                                if(strcmp(backend->itens[i].nomeC, aux->nome) == 0){
-                                    strcpy(buyStatus.msg, "Item adquirido\n");
-                                    write(utilizador_fd, &buyStatus, sizeof(buyStatus));
-
-                                    aux->saldo = aux->saldo - backend->itens[i].preco_base ;
-                                    updateUserBalance(aux->nome, aux->saldo);
-                                    saveUsersFile(backend->aVars->FUSERS);
-
-                                    removeItem(backend);
-                                    itensCounter--;
-                                }
-                            }*/ 
-
                             close(utilizador_fd);
                         }
                     }else{
-                        strcpy(buyStatus.msg, "\n\tSaldo Insuficiente\n");
+                        strcpy(buyStatus.msg, "\n\tInsira um valor maior que o preco base do item\n");
                         write(utilizador_fd, &buyStatus, sizeof(buyStatus));
                         close(utilizador_fd);
                     }
+                    
                 }else{
                     strcpy(buyStatus.msg, "\n\tInsira um valor maior que o preco base do item\n");
                     write(utilizador_fd, &buyStatus, sizeof(buyStatus));
                     close(utilizador_fd);
                 }
-                
+
             }else{
-                strcpy(buyStatus.msg, "\n\tInsira um valor maior que o preco base do item\n");
+                strcpy(buyStatus.msg, "\nItem nao existente\n");
                 write(utilizador_fd, &buyStatus, sizeof(buyStatus));
                 close(utilizador_fd);
             }
-
-        }else{
-            strcpy(buyStatus.msg, "\nItem nao existente\n");
-            write(utilizador_fd, &buyStatus, sizeof(buyStatus));
-            close(utilizador_fd);
         }
+    }else{
+        strcpy(buyStatus.msg, "\nNao existem items em leilao\n");
+        write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+        close(utilizador_fd);
     }
-
+    
 
 }
 
@@ -633,7 +639,9 @@ void removeItem(Backend* backend){
     for(int i = 0; i < itensCounter; i++){
         if(strcmp(backend->itens[i + 1].nome, "n") == 0){
             resetaItens(&(backend->itens[i]));
+            break;
         }else{
+            backend->itens[i + 1].id = backend->itens[i].id;
             backend->itens[i] = backend->itens[i + 1];
             break;
         }
