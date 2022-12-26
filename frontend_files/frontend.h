@@ -1,7 +1,7 @@
 #ifndef FRONTEND_H
 #define FRONTEND_H
 
-char* readCommands(char* commandM);
+//void readCommands(char* commandM, Clientes aux);
 void commandHelp();
 
 #endif

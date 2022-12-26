@@ -12,11 +12,16 @@ void sigterm_handler(){
 }
 
 void sigquit_handler(){
-    printf("Terminado por inatividade");
+    printf("User Terminado\n");
     unlink(UTILIZADOR_FIFO_FINAL);
     exit(EXIT_FAILURE);
 }
 
+void sigint_handler(){
+    printf("\nSaiu\n");
+    unlink(UTILIZADOR_FIFO_FINAL);
+    exit(EXIT_FAILURE);
+}
 
 int max(int a, int b){
     return (a > b) ? a : b;
@@ -40,7 +45,7 @@ void commandHelp(){
 
 }
 
-char* readCommands(char* CommandM){
+void readCommands(char* CommandM, Clientes aux){
 
     char command[TAM_MAX];
     char firstCommand[10];
@@ -48,10 +53,10 @@ char* readCommands(char* CommandM){
 
     fflush(stdin);
 
-    printf("Insira o comando que pretende executar: ");
-    fgets(command, TAM_MAX, stdin);
+    //printf("Insira o comando que pretende executar: ");
+    //fgets(command, TAM_MAX, stdin);
 
-    token = strtok(command, " \n");
+    token = strtok(CommandM, " \n");
 
     int wordCounts = 0;
     while(token != NULL){
@@ -68,6 +73,10 @@ char* readCommands(char* CommandM){
         if(wordCounts == 6){
             printf("Numero de argumentos valido\n");
             printf("COMANDO SELL EM EXECUCAO\n");
+
+            write(backend_fd, &aux, sizeof(aux));
+
+            //sell mota automoveis 10 20 100
         }else if(wordCounts < 6){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>\n");
@@ -76,15 +85,15 @@ char* readCommands(char* CommandM){
             printf("[FORMATO] sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>\n");
         }
 
-        CommandM = firstCommand;
-
-        return CommandM;
-
     }else if(strcmp(firstCommand, "list") == 0){
 
         if(wordCounts == 1){
             printf("Numero de argumentos valido\n");
             printf("COMANDO LIST EM EXECUCAO\n");
+
+            write(backend_fd, &aux, sizeof(aux));
+
+            //list
         }else if(wordCounts < 1){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] list\n");
@@ -92,16 +101,16 @@ char* readCommands(char* CommandM){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] list\n");
         }
-
-        CommandM = firstCommand;
-
-        return CommandM;
 
     }else if(strcmp(firstCommand, "licat") == 0){
 
         if(wordCounts == 2){
             printf("Numero de argumentos valido\n");
             printf("COMANDO LICAT EM EXECUCAO\n");
+
+            write(backend_fd, &aux, sizeof(aux));
+
+            //licat desporto
         }else if(wordCounts < 2){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] licat <nome-categoria\n");
@@ -109,16 +118,16 @@ char* readCommands(char* CommandM){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] licat <nome-categoria\n");
         }
-
-        CommandM = firstCommand;
-
-        return CommandM;
 
     }else if(strcmp(firstCommand, "lisel") == 0){
             
         if(wordCounts == 2){
             printf("Numero de argumentos valido\n");
             printf("COMANDO LISEL EM EXECUCAO\n");
+
+            write(backend_fd, &aux, sizeof(aux));
+
+            //lisel joaoc
         }else if(wordCounts < 2){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] lisel <username do vendedor>\n");
@@ -126,16 +135,16 @@ char* readCommands(char* CommandM){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] lisel <username do vendedor>\n");
         }
-
-        CommandM = firstCommand;
-
-        return CommandM;
 
     }else if(strcmp(firstCommand, "lival") == 0){
             
         if(wordCounts == 2){
             printf("Numero de argumentos valido\n");
             printf("COMANDO LIVAL EM EXECUCAO\n");
+
+            write(backend_fd, &aux, sizeof(aux));
+
+            //lival 1000
         }else if(wordCounts < 2){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] lival <preço-máximo>\n");
@@ -143,16 +152,16 @@ char* readCommands(char* CommandM){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] lival <preço-máximo>\n");
         }
-
-        CommandM = firstCommand;
-
-        return CommandM;
 
     }else if(strcmp(firstCommand, "litime") == 0){
             
         if(wordCounts == 2){
             printf("Numero de argumentos valido\n");
             printf("COMANDO LITIME EM EXECUCAO\n");
+
+            write(backend_fd, &aux, sizeof(aux));
+
+            //litime 250
         }else if(wordCounts < 2){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] litime <hora-em-segundos>\n");
@@ -160,16 +169,16 @@ char* readCommands(char* CommandM){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] litime <hora-em-segundos>\n");
         }
-          
-        CommandM = firstCommand;
-
-        return CommandM;
 
     }else if(strcmp(firstCommand, "time") == 0){
             
         if(wordCounts == 1){
             printf("Numero de argumentos valido\n");
             printf("COMANDO TIME EM EXECUCAO\n");
+
+            write(backend_fd, &aux, sizeof(aux));
+
+            //time
         }else if(wordCounts < 1){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] time\n");
@@ -178,15 +187,15 @@ char* readCommands(char* CommandM){
             printf("[FORMATO] time\n");
         }
 
-        CommandM = firstCommand;
-
-        return CommandM;
-
     }else if(strcmp(firstCommand, "buy") == 0){
         
         if(wordCounts == 3){
             printf("Numero de argumentos valido\n");
             printf("COMANDO BUY EM EXECUCAO\n");
+
+            write(backend_fd, &aux, sizeof(aux));
+
+            //buy 1 100
         }else if(wordCounts < 3){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] buy <id> <valor>\n");
@@ -195,15 +204,15 @@ char* readCommands(char* CommandM){
             printf("[FORMATO] buy <id> <valor>\n");
         }
 
-        CommandM = firstCommand;
-
-        return CommandM;
-
     }else if(strcmp(firstCommand, "cash") == 0){
 
         if(wordCounts == 1){
             printf("Numero de argumentos valido\n");
             printf("COMANDO CASH EM EXECUCAO\n");
+
+            write(backend_fd, &aux, sizeof(aux));
+
+            //cash
         }else if(wordCounts < 1){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] cash\n");
@@ -212,15 +221,15 @@ char* readCommands(char* CommandM){
             printf("[FORMATO] cash\n");
         }
 
-        CommandM = firstCommand;
-
-        return CommandM;
-
     }else if(strcmp(firstCommand, "add") == 0){
             
         if(wordCounts == 2){
             printf("Numero de argumentos valido\n");
             printf("COMANDO ADD EM EXECUCAO\n");
+
+            write(backend_fd, &aux, sizeof(aux));
+
+            //add 100
         }else if(wordCounts < 2){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] add <valor>\n");
@@ -228,10 +237,6 @@ char* readCommands(char* CommandM){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] add <valor>\n");
         }
-
-        CommandM = firstCommand;
-
-        return CommandM;
 
     }else if(strcmp(firstCommand, "help") == 0){
 
@@ -246,15 +251,15 @@ char* readCommands(char* CommandM){
             printf("[FORMATO] help\n");
         }
 
-        CommandM = firstCommand;
-
-        return CommandM;
-
     }else if(strcmp(firstCommand, "exit") == 0){
 
         if(wordCounts == 1){
             printf("Numero de argumentos valido\n");
             printf("COMANDO EXIT EM EXECUCAO\n");
+
+            write(backend_fd, &aux, sizeof(aux));
+
+            //exit
         }else if(wordCounts < 1){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] exit\n");
@@ -262,15 +267,10 @@ char* readCommands(char* CommandM){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] exit\n");
         }
-
-        CommandM = firstCommand;
-
-        return CommandM;
             
-    }else{
+    }else
         printf("[ERRO] Comando invalido\n\n");
-        return "Comando Invalido";
-    }
+    
 
 }
 
@@ -298,13 +298,14 @@ int main(int argc, char** argv){
     char* user = argv[1];
     char* pass = argv[2];
     char* command;
-    char msg[TAM_MAX] = {'\0'};;
+    char msg[TAM_MAX] = {'\0'};
     Clientes cliente;
     int nfd;
     fd_set read_fds;
     struct timeval tv;
     pthread_t thread_hb;
     pthread_t thread_inactivityMSG;
+    pthread_t thread_recebeUserWithCommad;
     //pthread_mutex_init(&cliente.m, NULL);
     dataMSG msgFromBackend;
     cliente.tempo_log = 0;
@@ -312,6 +313,7 @@ int main(int argc, char** argv){
 
     signal(SIGTERM, sigterm_handler);
     signal(SIGQUIT, sigquit_handler);
+    signal(SIGINT, sigint_handler);
     cliente.pid = getpid();
 
     if(argc < 3){
@@ -379,9 +381,9 @@ int main(int argc, char** argv){
             FD_ZERO(&read_fds);
             FD_SET(0, &read_fds);
             FD_SET(utilizador_fd, &read_fds);
-            FD_SET(sinal_fd, &read_fds);
+            FD_SET(backend_fd, &read_fds);
 
-            nfd = select(utilizador_fd + 1, &read_fds, NULL, NULL, &tv);
+            nfd = select(max(backend_fd, utilizador_fd) + 1, &read_fds, NULL, NULL, &tv);
 
             if(nfd == -1){
                 printf("\nNada a receber\n");
@@ -397,7 +399,7 @@ int main(int argc, char** argv){
 
                 fgets(cliente.comando, TAM_MAX, stdin);
                 cliente.tempo_log = 0;
-                write(backend_fd, &cliente, sizeof(cliente));
+                readCommands(cliente.comando, cliente);
 
             }
             
@@ -410,19 +412,40 @@ int main(int argc, char** argv){
                     perror("Erro ao ler no pipe\n");
                 }
 
-                if(strcmp(msgFromBackend.msg, "Usuario Valido\n") == 0){
-                    printf("Login feito com sucesso\n");
-                    cliente.is_logged_in = 1;
+                if(cliente.is_logged_in == 0){
+                    if(strcmp(msgFromBackend.msg, "Usuario Valido\n") == 0){
+                        printf("Login feito com sucesso\n");
+                        cliente.is_logged_in = 1;
+                    }
+                    else if(strcmp(msgFromBackend.msg, "[ERRO] Utilizador nao existe/password invalida\n") == 0){
+                        printf("\tLogin invalido\n");
+                        close(utilizador_fd);
+                    }else if(strcmp(msgFromBackend.msg, "\n[ERRO] Usuario ja esta loggado\n") == 0){
+                        printf("\tUsuario ja se encontra loggado\n");
+                        close(utilizador_fd);
+                    }else if(strcmp(msgFromBackend.msg, "Utilizador kickado por inatividade\n") == 0){
+                        printf("\tUtilizador kickado por inatividade\n");
+                        close(utilizador_fd);
+                    }
                 }
-                else if(strcmp(msgFromBackend.msg, "[ERRO] Utilizador nao existe/password invalida\n") == 0){
-                    printf("\tLogin invalido\n");
-                    close(utilizador_fd);
-                }else if(strcmp(msgFromBackend.msg, "\n[ERRO] Usuario ja esta loggado\n") == 0){
-                    printf("\tUsuario ja se encontra loggado\n");
-                    close(utilizador_fd);
-                }else if(strcmp(msgFromBackend.msg, "Utilizador kickado por inatividade\n") == 0){
-                    printf("\tUtilizador kickado por inatividade\n");
-                    //close(utilizador_fd);
+                
+                if(cliente.is_logged_in == 1){
+
+                    if(cliente.pid == msgFromBackend.pid){
+                        if(strcmp(msgFromBackend.msg, "Item adquirido\n") == 0){
+                            printf("Item adquirido\n");
+                            //close(utilizador_fd);
+                        }else if(strcmp(msgFromBackend.msg, "Licitacao feita\n") == 0){
+                            printf("Licitacao feita\n");
+                            //close(utilizador_fd);
+                        }else if(strcmp(msgFromBackend.msg, "\n\tInsira um valor maior que o preco base do item\n") == 0){
+                            printf("\n\tInsira um valor maior que o preco base do item\n");
+                            //close(utilizador_fd);
+                        }else if(strcmp(msgFromBackend.msg, "\nItem nao existente\n") == 0){
+                            printf("\nItem nao existente\n");
+                            //close(utilizador_fd);
+                        }
+                    }   
                 }
 
                 cliente.hBeat = msgFromBackend.hBeat;

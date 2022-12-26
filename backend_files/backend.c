@@ -5,6 +5,7 @@ int backend_fd;
 int utilizador_fd;
 int sinal_fd;
 int clientesCounter = 0;
+int itensCounter = 0;
 
 int max(int a, int b){
     return (a > b) ? a : b;
@@ -24,10 +25,191 @@ void commandHelp(){
 
 }
 
+void executeCommandBuy(Backend* backend, Clientes* aux){
+
+    char firstCommand[10];
+    char message[TAM_MAX] = {"\0"};
+    char* token;
+    int id;
+    int valor;
+    dataMSG buyStatus;
+    buyStatus.hBeat = backend->aVars->HEARTBEAT;
+    buyStatus.pid = aux->pid;
+    strcpy(buyStatus.msg, message);
+
+    sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, aux->pid); 
+    utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY);
+
+
+    token = strtok(aux->comando, " \n");
+
+    int wordCounts = 0;
+    while(token != NULL){
+        if(wordCounts == 0){
+            strcpy(firstCommand, token);
+        }
+
+        if(wordCounts == 1){
+            id = atoi(token);
+        }
+
+        if(wordCounts == 2){
+            valor = atoi(token);
+        }
+        wordCounts++;
+
+        token = strtok(NULL, " ");
+    }
+
+    for(int i = 0; i < itensCounter; i++){
+        if(id == i + 1){
+            if(strcmp(backend->itens[i].nomeC, "nC") == 0 || valor <= backend->itens[i].comprar_ja){
+                if(valor >= backend->itens[i].preco_base){
+                    if(aux->saldo > valor){
+                        if(valor == backend->itens[i].comprar_ja){ //compra imediata
+                            strcpy(backend->itens[i].nomeC, aux->nome);
+                            strcpy(buyStatus.msg, "Item adquirido\n");
+                            write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+
+                            aux->saldo = aux->saldo - valor;
+                            updateUserBalance(aux->nome, aux->saldo);
+
+                        }else if(valor < backend->itens[i].comprar_ja){ //por licitacoes
+                            strcpy(backend->itens[i].nomeC, aux->nome); //tracking de quem é ultimo licitador
+                            backend->itens[i].preco_base = valor;
+                            strcpy(buyStatus.msg, "Licitacao feita\n");
+                            write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+                        }
+                    }else{
+                        strcpy(buyStatus.msg, "\n\tSaldo Insuficiente\n");
+                        write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+                    }
+                }else{
+                    strcpy(buyStatus.msg, "\n\tInsira um valor maior que o preco base do item\n");
+                    write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+                }
+                
+            }else{
+                strcpy(buyStatus.msg, "\n\tInsira um valor maior que o preco base do item\n");
+                write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+            }
+
+        }else{
+            strcpy(buyStatus.msg, "\nItem nao existente\n");
+            write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+        }
+    }
+
+
+}
+
+void executeCommandSell(Backend* backend, Clientes* aux){
+
+    char firstCommand[10];
+    char* token;
+    char nome_item[TAM_MAX];
+    char categoria[TAM_MAX];
+    int preco_base;
+    int preco_compre_ja;
+    int duracao;
+
+    token = strtok(aux->comando, " \n");
+
+    int wordCounts = 0;
+    while(token != NULL){
+        if(wordCounts == 0){
+            strcpy(firstCommand, token);
+        }
+
+        if(wordCounts == 1){
+            strcpy(nome_item, token);
+        }
+
+        if(wordCounts == 2){
+            strcpy(categoria, token);
+        }
+
+        if(wordCounts == 3){
+            preco_base = atoi(token);
+        }
+
+        if(wordCounts == 4){
+            preco_compre_ja = atoi(token);
+        }
+
+        if(wordCounts == 5){
+            duracao = atoi(token);
+        }
+        wordCounts++;
+
+        token = strtok(NULL, " ");
+    }
+
+    backend->itens[itensCounter - 1].id = itensCounter;
+    strcpy(backend->itens[itensCounter - 1].nome, nome_item);
+    strcpy(backend->itens[itensCounter - 1].categoria, categoria);
+    backend->itens[itensCounter - 1].preco_base = preco_base;
+    backend->itens[itensCounter - 1].comprar_ja = preco_compre_ja;
+    backend->itens[itensCounter - 1].tempo = duracao;
+    strcpy(backend->itens[itensCounter - 1].nomeV, aux->nome);
+    strcpy(backend->itens[itensCounter - 1].nomeC, "nC");
+
+    /*printf("Item %d:\n", backend->itens[itensCounter].id);
+    printf("\tNome: %s\n",nome_item);
+    printf("\tCategoria: %s\n", categoria);
+    printf("\tPreco Base: %d\n", preco_base);
+    printf("\tComprar Ja: %d\n", preco_compre_ja);
+    printf("\tTempo: %d\n", duracao);
+    printf("\tNome Vendedor: %s\n", backend->itens[itensCounter].nomeV);
+    printf("\tNome Comprador: %s\n", backend->itens[itensCounter].nomeC);*/
+
+    /*int id;
+    char nome[TAM_MAX];
+    char categoria[TAM_MAX];
+    int preco_base; //valor a ser incrementado
+    int comprar_ja;
+    int tempo;
+    char nomeV[TAM_MAX];
+    char nomeC[TAM_MAX];*/
+
+
+}
+
+void executeCommandsFromUser(Backend* backend, Clientes* cliente){
+
+    char firstCommand[10];
+    char comando[TAM_MAX];
+    char* token;
+
+    strcpy(comando, cliente->comando);
+
+    token = strtok(comando, " \n");
+
+    int wordCounts = 0;
+    while(token != NULL){
+        if(wordCounts == 0){
+            strcpy(firstCommand, token);
+        }
+        wordCounts++;
+
+        token = strtok(NULL, " ");
+    }
+
+    if(strcmp(firstCommand, "sell") == 0){
+        itensCounter++;
+        executeCommandSell(backend, cliente);
+    }
+
+    if(strcmp(firstCommand, "buy") == 0){
+        executeCommandBuy(backend, cliente);
+    }
+}
+
 void commandsAdministrador(Backend* backend, char* command){
 
     char firstCommand[10];
     char* token;
+    char aux_username[TAM_MAX];
 
     fflush(stdin);
 
@@ -41,12 +223,18 @@ void commandsAdministrador(Backend* backend, char* command){
         if(wordCounts == 0){
             strcpy(firstCommand, token);
         }
+
+        if(strcmp(firstCommand, "kick") == 0){
+            if(wordCounts == 1){
+                strcpy(aux_username, token);
+            }
+        }
         wordCounts++;
 
         token = strtok(NULL, " ");
     }
 
-     if(strcmp(firstCommand, "users") == 0){
+    if(strcmp(firstCommand, "users") == 0){
 
         if(wordCounts == 1){
             printf("Numero de argumentos valido\n");
@@ -69,6 +257,18 @@ void commandsAdministrador(Backend* backend, char* command){
         if(wordCounts == 1){
             printf("Numero de argumentos valido\n");
             printf("COMANDO USERS EM EXECUCAO\n");
+
+            for(int i = 0; i < itensCounter; i++){
+                printf("\nItem %d:\n", backend->itens[i].id);
+                printf("\tNome: %s\n", backend->itens[i].nome);
+                printf("\tCategoria: %s\n", backend->itens[i].categoria);
+                printf("\tPreco Base: %d\n", backend->itens[i].preco_base);
+                printf("\tComprar Ja: %d\n", backend->itens[i].comprar_ja);
+                printf("\tTempo: %d\n", backend->itens[i].tempo);
+                printf("\tNome Vendedor: %s\n", backend->itens[i].nomeV);
+                printf("\tNome Comprador: %s\n", backend->itens[i].nomeC);
+            }
+
         }else if(wordCounts < 1){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] list\n");
@@ -82,6 +282,20 @@ void commandsAdministrador(Backend* backend, char* command){
         if(wordCounts == 2){
             printf("Numero de argumentos valido\n");
             printf("COMANDO KICK EM EXECUCAO\n");
+
+            aux_username[strcspn(aux_username, "\n")] = 0;
+
+            printf("aux_nome: {%s}", aux_username);
+
+            for(int i = 0; i < clientesCounter; i++){
+                if(strcmp(backend->clientes[i].nome, aux_username) == 0){
+                    printf("\nCliente %s kickado\n", backend->clientes[i].nome);
+                    kill(backend->clientes[i].pid, SIGQUIT);
+                    removeUser(backend, backend->clientes[i]);
+                    clientesCounter--;
+                }
+            }
+
         }else if(wordCounts < 2){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] kick <username>\n");
@@ -357,6 +571,19 @@ void openPromoter(Backend* backend){
     
 }*/
 
+void inicializaItens(Backend* backend){
+    for(int i = 0; i < 30; i++){
+        backend->itens[i].id = i + 1;
+        strcpy(backend->itens[i].nome, "n");
+        strcpy(backend->itens[i].categoria, "c");
+        backend->itens[i].preco_base = 0;
+        backend->itens[i].comprar_ja = 0;
+        backend->itens[i].tempo = 0;
+        strcpy(backend->itens[i].nomeV, "nV");
+        strcpy(backend->itens[i].nomeC, "nC");
+    }
+}
+
 void resetaCliente(Clientes* cliente){
 
     strcpy(cliente->nome, "n");
@@ -395,11 +622,17 @@ void removeUser(Backend* backend, Clientes aux){
                 backend->clientes[i] = backend->clientes[i + 1];
                 break;
             }
-
         }
     }
+}
 
-
+void resetUserTimeWithPid(Backend* backend, int pid){
+    
+    for(int i = 0; i < clientesCounter; i++){
+        if(backend->clientes[i].pid == pid){
+            backend->clientes[i].tempo_log = 0;
+        }
+    }
 }
 
 void resetUserTime(Backend* backend, Clientes aux){
@@ -410,6 +643,7 @@ void resetUserTime(Backend* backend, Clientes aux){
         }
     }
 }
+
 char* verificaUser(Backend* backend, Clientes aux){
 
     fflush(stdin);
@@ -425,13 +659,13 @@ char* verificaUser(Backend* backend, Clientes aux){
 
     if(clientesCounter <= 19){
         if(isUserValid(aux.nome, aux.password) == 0){
-            kill(aux.pid, SIGTERM); //dar kill ao da nova execucao
+            kill(aux.pid, SIGTERM);
             return "[ERRO] Utilizador nao existe/password invalida\n";
         }else if(isUserValid(aux.nome, aux.password) == 1){
 
             for(int i = 0; i < clientesCounter; i++){
                 if(strcmp(backend->clientes[i].nome, aux.nome) == 0){
-                    kill(aux.pid, SIGTERM); //dar kill ao da nova execucao
+                    kill(aux.pid, SIGTERM);
                     return "\n[ERRO] Usuario ja esta loggado\n";
                 }else continue;
             }
@@ -456,22 +690,11 @@ char* verificaUser(Backend* backend, Clientes aux){
     return "[ERRO]";
 }
 
-/*void* heartBeatCheck(void* backendAux){
-
-    Backend* pBackendAux = (Backend*) backendAux;
-
-    for(int i = 0; i < clientesCounter; i++){
-        if
-    }
-
-}*/
-
 void* inactivityThread(void* msgHeartBeat){
 
     Backend* pMsgHeartBeat = (Backend*) msgHeartBeat;
     dataMSG resposta_t;
     char messageI[100] = "Utilizador kickado por inatividade\n";
-    char messageD[100] = "Utilizador nao existe na plataforma\n";
 
     while(1){
         sleep(1);
@@ -481,12 +704,12 @@ void* inactivityThread(void* msgHeartBeat){
             if(pMsgHeartBeat->clientes[i].pid != 0){ //verifica que o user existe
                 pMsgHeartBeat->clientes[i].tempo_log++; //aumenta o tempo de log in
 
-                if(pMsgHeartBeat->clientes[i].tempo_log > 2 * pMsgHeartBeat->aVars->HEARTBEAT){
+                if(pMsgHeartBeat->clientes[i].tempo_log > pMsgHeartBeat->aVars->HEARTBEAT + 2){
                     strcpy(resposta_t.msg, messageI);
 
                     printf("\nCliente %s foi removido da plataforma\n", pMsgHeartBeat->clientes[i].nome);
 
-                    kill(pMsgHeartBeat->clientes[i].pid, SIGQUIT);
+                    kill(pMsgHeartBeat->clientes[i].pid, SIGINT);
                     removeUser(pMsgHeartBeat, pMsgHeartBeat->clientes[i]);
                     clientesCounter--;
                     break;
@@ -521,6 +744,7 @@ int main(int argc, char** argv){
     //CARREGA LOGO AS VARS DE AMBIENTE
     backend.aVars = getAmbientVariables(&backend);
     inicializaClientes(&backend);
+    inicializaItens(&backend);
 
     if(backend.itens == NULL){
         printf("[ERRO] Memoria nao alocada\n");
@@ -603,8 +827,7 @@ int main(int argc, char** argv){
         if(FD_ISSET(backend_fd, &read_fds)){
             //Aqui esta a escuta dos utilizadores que vai receber pelo named_pipe
             read(backend_fd, &aux, sizeof(aux)); //ler o cliente para uma estrutura auxiliar para verificar se é um usuario valido e assim n ter de o adicionar a estrutura de clientes caso seja invalido
-            //aux.tempo_log = 0;
-            resetUserTime(&backend, aux);
+            //resetUserTime(&backend, aux);
 
             if(aux.is_logged_in == 0){
 
@@ -636,9 +859,14 @@ int main(int argc, char** argv){
                 if(s2 < 0){
                     printf("Erro ao escrever no pipe\n");
                 }
+                close(utilizador_fd);
 
             }else if(aux.is_logged_in == 1){
                 printf("\nCOMANDO de %s: %s\n", aux.nome, aux.comando);
+
+                //retomar aqui
+                //executar os comandos inseridos pelos users
+                executeCommandsFromUser(&backend, &aux);
             }
 
         }
@@ -652,20 +880,15 @@ int main(int argc, char** argv){
             int pid;
 
             int a = read(sinal_fd, &pid, sizeof(pid));
-            if(a < 0)
-                printf("\n[ERRO] Erro ao ler do pipe\n");
-            else
-                printf("\npid: %d\n", pid);
 
-            /*for(int i = 0; i < clientesCounter; i++){
-                if(pid == backend.clientes[i].pid + 1){
-                    printf("\nCliente %s foi removido da plataforma\n", backend.clientes[i].nome);
-
-                    kill(backend.clientes[i].pid, SIGQUIT);
-                    removeUser(&backend, backend.clientes[i]);
+            if(a == sizeof(pid)){
+                for(int i = 0; i < clientesCounter; i++){
+                    if(backend.clientes[i].pid == pid){
+                        printf("\nHeartBeat de %s\n", backend.clientes[i].nome);
+                        resetUserTimeWithPid(&backend, pid);
+                    }
                 }
-            }*/
-
+            }
 
         }
     }
