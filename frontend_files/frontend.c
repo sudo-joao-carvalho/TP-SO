@@ -495,6 +495,9 @@ int main(int argc, char** argv){
                         }else if(strcmp(msgFromBackend.msg, "\nItem nao existente\n") == 0){
                             printf("\nItem nao existente\n");
                             //close(utilizador_fd);
+                        }else if(strcmp(msgFromBackend.msg, "Backend Encerrou") == 0){
+                            printf("\n\t\tBackend Encerrou\n");
+                            //close(utilizador_fd);
                         }else{
                             parceSaldoAddOrCashOrTime(&cliente, msgFromBackend.msg);
                             //printf("Saldo Atualizado: %d\n", cliente.saldo);
