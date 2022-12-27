@@ -89,6 +89,25 @@ void executeCommandAdd(Backend* backend, Clientes* aux){
 
 }
 
+void executeCommandCash(Backend* backend, Clientes* cliente){
+
+    char message[TAM_MAX] = {"\0"};
+    dataMSG buyStatus;
+    buyStatus.hBeat = backend->aVars->HEARTBEAT;
+    buyStatus.pid = cliente->pid;
+    strcpy(buyStatus.msg, message);
+
+    sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, cliente->pid); 
+    utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY);
+
+    strcpy(message, "Cash %d");
+    sprintf(buyStatus.msg, message, cliente->saldo);
+
+    write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+    close(utilizador_fd);
+
+}
+
 void executeCommandBuy(Backend* backend, Clientes* aux){
 
     char firstCommand[10];
@@ -125,13 +144,33 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
     }
 
     //printf("aux_saldo de %s: %d", aux->nome, aux->saldo);
-    for(int i = 0; i < itensCounter; i++){
+    /*for(int i = 0; i < itensCounter; i++){
         printf("Id %d\n", backend->itens[i].id);
-    }
+    }*/
+
+    /*if(itensCounter > 0){
+        for(int i = 0; i < itensCounter; i++){
+            if(id == backend->itens[i].id){
+
+            }else{
+                if(i == itensCounter - 1){
+                    
+                }
+                continue;
+            }
+        }
+
+    }else{
+        strcpy(buyStatus.msg, "\nNao existem items em leilao\n");
+        write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+        close(utilizador_fd);
+    }*/
 
     if(itensCounter > 0){
         for(int i = 0; i < itensCounter; i++){
             if(backend->itens[i].id == id){
+                //printf("Id %d\n", backend->itens[i].id);
+                //printf("Nome %s\n", backend->itens[i].nome);
                 if(strcmp(backend->itens[i].nomeC, "nC") == 0 || valor <= backend->itens[i].comprar_ja){
                     if(valor >= backend->itens[i].preco_base){
                         if(aux->saldo >= valor){
@@ -173,7 +212,8 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
                                 strcpy(buyStatus.msg, "Licitacao feita\n");
                                 write(utilizador_fd, &buyStatus, sizeof(buyStatus));
 
-                                /*if(backend->itens[i].tempo == 0){
+                                /*comentar
+                                if(backend->itens[i].tempo == 0){
                                     if(strcmp(backend->itens[i].nomeC, aux->nome) == 0){
                                         strcpy(buyStatus.msg, "Item adquirido\n");
                                         write(utilizador_fd, &buyStatus, sizeof(buyStatus));
@@ -185,7 +225,7 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
                                         removeItem(backend, &(backend->itens[i]));
                                         itensCounter--;
                                     }
-                                }*/ 
+                                }*/
 
                                 close(utilizador_fd);
                             }
@@ -207,9 +247,11 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
                 }
 
             }else{
-                strcpy(buyStatus.msg, "\nItem nao existente\n");
-                write(utilizador_fd, &buyStatus, sizeof(buyStatus));
-                close(utilizador_fd);
+                if(i == itensCounter - 1){
+                    strcpy(buyStatus.msg, "\nItem nao existente\n");
+                    write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+                    close(utilizador_fd);
+                }else continue;
             }
         }
     }else{
@@ -219,6 +261,26 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
     }
     
 
+}
+
+void executeCommandTime(Backend* backend, Clientes* cliente){
+
+    printf("time: %d\n", backend->tempo_run);
+
+    char message[TAM_MAX] = {"\0"};
+    dataMSG buyStatus;
+    buyStatus.hBeat = backend->aVars->HEARTBEAT;
+    buyStatus.pid = cliente->pid;
+    strcpy(buyStatus.msg, message);
+
+    sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, cliente->pid); 
+    utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY);
+
+    strcpy(message, "Time %d");
+    sprintf(buyStatus.msg, message, backend->tempo_run);
+
+    write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+    close(utilizador_fd);
 }
 
 void executeCommandSell(Backend* backend, Clientes* aux){
@@ -299,8 +361,16 @@ void executeCommandsFromUser(Backend* backend, Clientes* cliente){
         executeCommandSell(backend, cliente);
     }
 
+    if(strcmp(firstCommand, "time") == 0){
+        executeCommandTime(backend, cliente);
+    }
+
     if(strcmp(firstCommand, "buy") == 0){
         executeCommandBuy(backend, cliente);
+    }
+
+    if(strcmp(firstCommand, "cash") == 0){
+        executeCommandCash(backend, cliente);
     }
 
     if(strcmp(firstCommand, "add") == 0){
@@ -715,7 +785,6 @@ void removeItem(Backend* backend, Itens* item){
 
             for(int j = i; j < 30; j++){
                 backend->itens[j] = backend->itens[j + 1];
-                backend->itens[j].id--;
             }
         }
         

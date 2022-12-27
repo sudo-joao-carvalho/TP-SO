@@ -267,7 +267,7 @@ void* enviaHEARTBEAT(void* msgHeartBeat){
 
     while(1){
     //while(strcmp(pMsgHeartBeat->comando, "exit") != 0){
-        sleep(/*pMsgHeartBeat->hBeat*/5);
+        sleep(pMsgHeartBeat->hBeat);
         //pthread_mutex_lock(&pMsgHeartBeat->m);
             sinal_fd = open(SINAL_FIFO, O_RDWR | O_NONBLOCK);
             write(sinal_fd, &aux, sizeof(aux));
@@ -279,11 +279,13 @@ void* enviaHEARTBEAT(void* msgHeartBeat){
 
 }
 
-void parceSaldoAdd(Clientes* cliente, char* message){
+void parceSaldoAddOrCashOrTime(Clientes* cliente, char* message){
 
+    char firstCommand[10];
     char command[TAM_MAX];
     char* token;
     int saldo;
+    int tempo;
 
     fflush(stdin);
 
@@ -296,15 +298,38 @@ void parceSaldoAdd(Clientes* cliente, char* message){
     int wordCounts = 0;
     while(token != NULL){
 
-        if(wordCounts == 3){
-            saldo = atoi(token);
+        if(wordCounts == 0){
+            strcpy(firstCommand, token);
+        }
+
+        if(strcmp(firstCommand, "Add") == 0){
+            if(wordCounts == 3){
+                saldo = atoi(token);
+                cliente->saldo = saldo;
+                printf("Saldo atualizado %d", cliente->saldo);
+                break;
+            }
+        }
+
+        if(strcmp(firstCommand, "Cash") == 0){
+            if(wordCounts == 1){
+                saldo = atoi(token);
+                cliente->saldo = saldo;
+                printf("Saldo atual %d", cliente->saldo);
+                break;
+            }
+        }
+
+        if(strcmp(firstCommand, "Time") == 0){
+            if(wordCounts == 1){
+                tempo = atoi(token);
+                printf("Tempo atual (em segundos): %d", tempo);
+            }
         }
         wordCounts++;
 
         token = strtok(NULL, " ");
     }
-
-    cliente->saldo = saldo;
 
 }
 
@@ -428,16 +453,13 @@ int main(int argc, char** argv){
             if(FD_ISSET(utilizador_fd, &read_fds)){
                 //Aqui esta a escuta que algo seja escrito no pipe utilizador_fd
 
-                //RECEBE MENSAGEM A CONFIRMAR QUE FOI LOGADO
+                //RECEBE MENSAGENS DO BACKEND
                 int size2 = read(utilizador_fd, &msgFromBackend, sizeof(msgFromBackend));
                 if(size2 < 0){
                     perror("Erro ao ler no pipe\n");
                 }
 
                 cliente.hBeat = msgFromBackend.hBeat;
-
-                /*if(pthread_create(&thread_hb, NULL, &enviaHEARTBEAT, &(cliente)) != 0)
-                    return -1;*/
 
                 if(cliente.is_logged_in == 0){
                     if(strcmp(msgFromBackend.msg, "Usuario Valido\n") == 0){
@@ -474,8 +496,8 @@ int main(int argc, char** argv){
                             printf("\nItem nao existente\n");
                             //close(utilizador_fd);
                         }else{
-                            parceSaldoAdd(&cliente, msgFromBackend.msg);
-                            printf("Saldo Atualizado: %d\n", cliente.saldo);
+                            parceSaldoAddOrCashOrTime(&cliente, msgFromBackend.msg);
+                            //printf("Saldo Atualizado: %d\n", cliente.saldo);
 
                         }
 
