@@ -554,6 +554,7 @@ void commandsAdministrador(Backend* backend, char* command){
 
                 write(utilizador_fd, &buyStatus, sizeof(buyStatus));
                 close(utilizador_fd);
+
             }
 
             for(int i = 0; i < clientesCounter; i++){
