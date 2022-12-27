@@ -1,5 +1,6 @@
 #include "frontend.h"
 #include "../general.h"
+#include "../backend_files/users_lib.h"
 
 int backend_fd;
 int utilizador_fd;
@@ -71,8 +72,6 @@ void readCommands(char* CommandM, Clientes aux){
     if(strcmp(firstCommand, "sell") == 0){
 
         if(wordCounts == 6){
-            printf("Numero de argumentos valido\n");
-            printf("COMANDO SELL EM EXECUCAO\n");
 
             write(backend_fd, &aux, sizeof(aux));
 
@@ -88,8 +87,6 @@ void readCommands(char* CommandM, Clientes aux){
     }else if(strcmp(firstCommand, "list") == 0){
 
         if(wordCounts == 1){
-            printf("Numero de argumentos valido\n");
-            printf("COMANDO LIST EM EXECUCAO\n");
 
             write(backend_fd, &aux, sizeof(aux));
 
@@ -105,8 +102,6 @@ void readCommands(char* CommandM, Clientes aux){
     }else if(strcmp(firstCommand, "licat") == 0){
 
         if(wordCounts == 2){
-            printf("Numero de argumentos valido\n");
-            printf("COMANDO LICAT EM EXECUCAO\n");
 
             write(backend_fd, &aux, sizeof(aux));
 
@@ -122,8 +117,6 @@ void readCommands(char* CommandM, Clientes aux){
     }else if(strcmp(firstCommand, "lisel") == 0){
             
         if(wordCounts == 2){
-            printf("Numero de argumentos valido\n");
-            printf("COMANDO LISEL EM EXECUCAO\n");
 
             write(backend_fd, &aux, sizeof(aux));
 
@@ -139,8 +132,6 @@ void readCommands(char* CommandM, Clientes aux){
     }else if(strcmp(firstCommand, "lival") == 0){
             
         if(wordCounts == 2){
-            printf("Numero de argumentos valido\n");
-            printf("COMANDO LIVAL EM EXECUCAO\n");
 
             write(backend_fd, &aux, sizeof(aux));
 
@@ -156,8 +147,6 @@ void readCommands(char* CommandM, Clientes aux){
     }else if(strcmp(firstCommand, "litime") == 0){
             
         if(wordCounts == 2){
-            printf("Numero de argumentos valido\n");
-            printf("COMANDO LITIME EM EXECUCAO\n");
 
             write(backend_fd, &aux, sizeof(aux));
 
@@ -173,8 +162,6 @@ void readCommands(char* CommandM, Clientes aux){
     }else if(strcmp(firstCommand, "time") == 0){
             
         if(wordCounts == 1){
-            printf("Numero de argumentos valido\n");
-            printf("COMANDO TIME EM EXECUCAO\n");
 
             write(backend_fd, &aux, sizeof(aux));
 
@@ -190,8 +177,6 @@ void readCommands(char* CommandM, Clientes aux){
     }else if(strcmp(firstCommand, "buy") == 0){
         
         if(wordCounts == 3){
-            printf("Numero de argumentos valido\n");
-            printf("COMANDO BUY EM EXECUCAO\n");
 
             write(backend_fd, &aux, sizeof(aux));
 
@@ -207,8 +192,6 @@ void readCommands(char* CommandM, Clientes aux){
     }else if(strcmp(firstCommand, "cash") == 0){
 
         if(wordCounts == 1){
-            printf("Numero de argumentos valido\n");
-            printf("COMANDO CASH EM EXECUCAO\n");
 
             write(backend_fd, &aux, sizeof(aux));
 
@@ -224,8 +207,6 @@ void readCommands(char* CommandM, Clientes aux){
     }else if(strcmp(firstCommand, "add") == 0){
             
         if(wordCounts == 2){
-            printf("Numero de argumentos valido\n");
-            printf("COMANDO ADD EM EXECUCAO\n");
 
             write(backend_fd, &aux, sizeof(aux));
 
@@ -241,8 +222,9 @@ void readCommands(char* CommandM, Clientes aux){
     }else if(strcmp(firstCommand, "help") == 0){
 
         if(wordCounts == 1){
-            printf("Numero de argumentos valido\n");
+
             commandHelp();
+
         }else if(wordCounts < 1){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] help\n");
@@ -254,8 +236,6 @@ void readCommands(char* CommandM, Clientes aux){
     }else if(strcmp(firstCommand, "exit") == 0){
 
         if(wordCounts == 1){
-            printf("Numero de argumentos valido\n");
-            printf("COMANDO EXIT EM EXECUCAO\n");
 
             write(backend_fd, &aux, sizeof(aux));
 
@@ -293,12 +273,47 @@ void* enviaHEARTBEAT(void* msgHeartBeat){
 
 }
 
+void parceSaldo(Clientes* cliente, char* message){
+
+    printf("message: %s", message);
+
+    char command[TAM_MAX];
+    char* token;
+    int saldo;
+
+    fflush(stdin);
+
+    //printf("Insira o comando que pretende executar: ");
+    //fgets(command, TAM_MAX, stdin);
+
+    strcpy(command, message);
+    token = strtok(command, " \n");
+
+    int wordCounts = 0;
+    while(token != NULL){
+
+        if(wordCounts == 3){
+            saldo = atoi(token);
+        }
+        wordCounts++;
+
+        token = strtok(NULL, " ");
+    }
+
+    cliente->saldo = saldo;
+
+    printf("saldo: %d\n", saldo);
+    printf("cliente->saldo: %d\n", cliente->saldo);
+
+}
+
 int main(int argc, char** argv){
 
     char* user = argv[1];
     char* pass = argv[2];
     char* command;
     char msg[TAM_MAX] = {'\0'};
+    char saldoString[TAM_MAX] = {'\0'};
     Clientes cliente;
     int nfd;
     fd_set read_fds;
@@ -447,6 +462,10 @@ int main(int argc, char** argv){
                         }else if(strcmp(msgFromBackend.msg, "\nItem nao existente\n") == 0){
                             printf("\nItem nao existente\n");
                             //close(utilizador_fd);
+                        }else{
+                            parceSaldo(&cliente, msgFromBackend.msg);
+                            printf("Saldo Atualizado: %d\n", cliente.saldo);
+
                         }
                     }   
                 }

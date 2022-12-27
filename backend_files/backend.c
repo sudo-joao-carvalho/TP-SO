@@ -25,6 +25,76 @@ void commandHelp(){
 
 }
 
+void executeCommandExit(Backend* backend, Clientes* aux){
+
+    for(int i = 0; i < clientesCounter; i++){
+        if(backend->clientes[i].pid == aux->pid){
+            printf("\n\tUser %s saiu da plataforma\n", backend->clientes[i].nome);
+            kill(backend->clientes[i].pid, SIGQUIT);
+            removeUser(backend, backend->clientes[i]);
+            clientesCounter--;
+        }
+    }
+
+}
+
+void executeCommandAdd(Backend* backend, Clientes* aux){
+
+    printf("entrei no add\n");
+
+    char firstCommand[10];
+    char message[TAM_MAX] = {"\0"};
+    char* token;
+    int valor;
+    dataMSG buyStatus;
+    buyStatus.hBeat = backend->aVars->HEARTBEAT;
+    buyStatus.pid = aux->pid;
+    strcpy(buyStatus.msg, message);
+
+    sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, aux->pid); 
+    utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY);
+
+
+    token = strtok(aux->comando, " \n");
+
+    int wordCounts = 0;
+    while(token != NULL){
+        if(wordCounts == 0){
+            strcpy(firstCommand, token);
+        }
+
+        if(wordCounts == 1){
+            valor = atoi(token);
+        }
+
+        wordCounts++;
+
+        token = strtok(NULL, " ");
+    }
+
+    printf("aux->saldo: %d\n", aux->saldo);
+
+    for(int i = 0; i < clientesCounter; i++){
+        if(strcmp(backend->clientes[i].nome, aux->nome) == 0){
+            backend->clientes[i].saldo += valor;
+
+            printf("backend->clientes[i].saldo: %d\n", backend->clientes[i].saldo);
+
+            updateUserBalance(backend->clientes[i].nome, backend->clientes[i].saldo);
+            saveUsersFile(backend->aVars->FUSERS);
+
+            strcpy(message, "Saldo atualizado para %d");
+            sprintf(buyStatus.msg, message, backend->clientes[i].saldo);
+            printf("buyStatus.msg: %s\n", buyStatus.msg);
+            write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+
+            close(utilizador_fd);
+        }
+    }
+
+
+}
+
 void executeCommandBuy(Backend* backend, Clientes* aux){
 
     char firstCommand[10];
@@ -39,7 +109,6 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
 
     sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, aux->pid); 
     utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY);
-
 
     token = strtok(aux->comando, " \n");
 
@@ -188,25 +257,6 @@ void executeCommandSell(Backend* backend, Clientes* aux){
     strcpy(backend->itens[itensCounter - 1].nomeV, aux->nome);
     strcpy(backend->itens[itensCounter - 1].nomeC, "nC");
 
-    /*printf("Item %d:\n", backend->itens[itensCounter].id);
-    printf("\tNome: %s\n",nome_item);
-    printf("\tCategoria: %s\n", categoria);
-    printf("\tPreco Base: %d\n", preco_base);
-    printf("\tComprar Ja: %d\n", preco_compre_ja);
-    printf("\tTempo: %d\n", duracao);
-    printf("\tNome Vendedor: %s\n", backend->itens[itensCounter].nomeV);
-    printf("\tNome Comprador: %s\n", backend->itens[itensCounter].nomeC);*/
-
-    /*int id;
-    char nome[TAM_MAX];
-    char categoria[TAM_MAX];
-    int preco_base; //valor a ser incrementado
-    int comprar_ja;
-    int tempo;
-    char nomeV[TAM_MAX];
-    char nomeC[TAM_MAX];*/
-
-
 }
 
 void executeCommandsFromUser(Backend* backend, Clientes* cliente){
@@ -236,6 +286,14 @@ void executeCommandsFromUser(Backend* backend, Clientes* cliente){
 
     if(strcmp(firstCommand, "buy") == 0){
         executeCommandBuy(backend, cliente);
+    }
+
+    if(strcmp(firstCommand, "add") == 0){
+        executeCommandAdd(backend, cliente);
+    }
+
+    if(strcmp(firstCommand, "exit") == 0){
+        executeCommandExit(backend, cliente);
     }
 }
 
