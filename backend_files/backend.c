@@ -40,8 +40,6 @@ void executeCommandExit(Backend* backend, Clientes* aux){
 
 void executeCommandAdd(Backend* backend, Clientes* aux){
 
-    printf("entrei no add\n");
-
     char firstCommand[10];
     char message[TAM_MAX] = {"\0"};
     char* token;
@@ -72,13 +70,9 @@ void executeCommandAdd(Backend* backend, Clientes* aux){
         token = strtok(NULL, " ");
     }
 
-    printf("aux->saldo: %d\n", aux->saldo);
-
     for(int i = 0; i < clientesCounter; i++){
         if(strcmp(backend->clientes[i].nome, aux->nome) == 0){
             backend->clientes[i].saldo += valor;
-
-            printf("backend->clientes[i].saldo: %d\n", backend->clientes[i].saldo);
 
             updateUserBalance(backend->clientes[i].nome, backend->clientes[i].saldo);
             saveUsersFile(backend->aVars->FUSERS);
@@ -131,23 +125,44 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
     }
 
     //printf("aux_saldo de %s: %d", aux->nome, aux->saldo);
+    for(int i = 0; i < itensCounter; i++){
+        printf("Id %d\n", backend->itens[i].id);
+    }
 
     if(itensCounter > 0){
         for(int i = 0; i < itensCounter; i++){
-            if(id == backend->itens[i].id){
+            if(backend->itens[i].id == id){
                 if(strcmp(backend->itens[i].nomeC, "nC") == 0 || valor <= backend->itens[i].comprar_ja){
                     if(valor >= backend->itens[i].preco_base){
                         if(aux->saldo >= valor){
                             if(valor == backend->itens[i].comprar_ja){ //compra imediata
+
+                                printf("entrei no compra imediata\n");
                                 strcpy(backend->itens[i].nomeC, aux->nome);
                                 strcpy(buyStatus.msg, "Item adquirido\n");
                                 write(utilizador_fd, &buyStatus, sizeof(buyStatus));
 
-                                aux->saldo = aux->saldo - valor;
-                                updateUserBalance(aux->nome, aux->saldo);
-                                saveUsersFile(backend->aVars->FUSERS);
+                                for(int j = 0; j < clientesCounter; j++){
 
-                                removeItem(backend);
+                                    //saldo do que comprou
+                                    if(strcmp(backend->clientes[j].nome, backend->itens[i].nomeC) == 0){
+                                        aux->saldo -= valor;
+                                        backend->clientes[j].saldo = aux->saldo;
+                                        updateUserBalance(backend->clientes[j].nome, backend->clientes[j].saldo); 
+                                        saveUsersFile(backend->aVars->FUSERS);
+                                    }
+
+                                    //saldo do que vendeu
+                                    if(strcmp(backend->clientes[j].nome, backend->itens[i].nomeV) == 0){
+                                        backend->clientes[j].saldo += valor;
+                                        updateUserBalance(backend->clientes[j].nome, backend->clientes[j].saldo); 
+                                        saveUsersFile(backend->aVars->FUSERS);
+                                    }
+                                }
+
+                                printf("comprou\n");
+
+                                removeItem(backend, &(backend->itens[i]));
                                 itensCounter--;
 
                                 close(utilizador_fd);
@@ -167,7 +182,7 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
                                         updateUserBalance(aux->nome, aux->saldo);
                                         saveUsersFile(backend->aVars->FUSERS);
 
-                                        removeItem(backend);
+                                        removeItem(backend, &(backend->itens[i]));
                                         itensCounter--;
                                     }
                                 }*/ 
@@ -692,17 +707,18 @@ void inicializaItens(Backend* backend){
     }
 }
 
-void removeItem(Backend* backend){
+void removeItem(Backend* backend, Itens* item){
 
-    for(int i = 0; i < itensCounter; i++){
-        if(strcmp(backend->itens[i + 1].nome, "n") == 0){
-            resetaItens(&(backend->itens[i]));
-            break;
-        }else{
-            backend->itens[i + 1].id = backend->itens[i].id;
-            backend->itens[i] = backend->itens[i + 1];
-            break;
+    for(int i = 0; i < 30; i++){
+        if(backend->itens[i].id == item->id){
+            resetaItens(item);
+
+            for(int j = i; j < 30; j++){
+                backend->itens[j] = backend->itens[j + 1];
+                backend->itens[j].id--;
+            }
         }
+        
     }
 }
 
@@ -734,15 +750,13 @@ void inicializaClientes(Backend* backend){
 
 void removeUser(Backend* backend, Clientes aux){
 
-    for(int i = 0; i < clientesCounter; i++){
+    for(int i = 0; i < 20; i++){
         if(backend->clientes[i].pid == aux.pid){
 
-            if(strcmp(backend->clientes[i + 1].nome, "a") == 0){
-                resetaCliente(&(backend->clientes[i]));
-                break;
-            }else{
-                backend->clientes[i] = backend->clientes[i + 1];
-                break;
+            resetaCliente(&(backend->clientes[i]));
+
+            for(int j = i; j < 20; j++){
+                backend->clientes[j] = backend->clientes[j + 1];
             }
         }
     }
@@ -826,7 +840,7 @@ void* removeItemPorLicitacao(void* backend_aux){
 
                 if(strcmp(pBackend_aux->itens[i].nomeC, "nC") == 0){
                     printf("Ninguem licitou no item %s", pBackend_aux->itens[i].nome);
-                    removeItem(pBackend_aux);
+                    removeItem(pBackend_aux, &(pBackend_aux->itens[i]));
                     itensCounter--;
                 }
 
@@ -842,13 +856,23 @@ void* removeItemPorLicitacao(void* backend_aux){
 
                         printf("Item adquirido\n");
 
-                        pBackend_aux->clientes[j].saldo = pBackend_aux->clientes[j].saldo - pBackend_aux->itens[i].preco_base ;
+                        //saldo do que comprou
+                        pBackend_aux->clientes[j].saldo = pBackend_aux->clientes[j].saldo - pBackend_aux->itens[i].preco_base;
                         updateUserBalance(pBackend_aux->clientes[j].nome, pBackend_aux->clientes[j].saldo);
                         saveUsersFile(pBackend_aux->aVars->FUSERS);
-                        close(utilizador_fd);
-                        removeItem(pBackend_aux);
+
+                        //close(utilizador_fd);
+                        removeItem(pBackend_aux, &(pBackend_aux->itens[i]));
                         itensCounter--;
                     }
+
+                    //saldo do que vendeu
+                    if(strcmp(pBackend_aux->clientes[j].nome, pBackend_aux->itens[i].nomeV) == 0){
+                        pBackend_aux->clientes[j].saldo += pBackend_aux->itens[i].preco_base;
+                        updateUserBalance(pBackend_aux->clientes[j].nome, pBackend_aux->clientes[j].saldo); 
+                        saveUsersFile(pBackend_aux->aVars->FUSERS);
+                    }
+                    
                 }
             }
 
@@ -1005,12 +1029,10 @@ int main(int argc, char** argv){
         if(FD_ISSET(backend_fd, &read_fds)){
             //Aqui esta a escuta dos utilizadores que vai receber pelo named_pipe
             read(backend_fd, &aux, sizeof(aux)); //ler o cliente para uma estrutura auxiliar para verificar se é um usuario valido e assim n ter de o adicionar a estrutura de clientes caso seja invalido
-            //resetUserTime(&backend, aux);
 
             if(aux.is_logged_in == 0){
 
                 clienteValidoMsg = verificaUser(&backend, aux);
-
                 strcpy(resposta.msg, clienteValidoMsg);
                 resposta.hBeat = backend.aVars->HEARTBEAT;
 

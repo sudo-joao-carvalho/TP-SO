@@ -75,7 +75,13 @@ void readCommands(char* CommandM, Clientes aux){
 
             write(backend_fd, &aux, sizeof(aux));
 
-            //sell mota automoveis 10 20 10
+            //sell mota1 automoveis 10 20 100
+            //sell mota2 automoveis 10 20 100
+            //sell mota3 automoveis 10 20 100
+
+            //sell mota1 automoveis 10 20 20
+            //sell mota2 automoveis 10 20 20
+            //sell mota3 automoveis 10 20 20
         }else if(wordCounts < 6){
             printf("[ERRO] Numero de argumentos invalido\n");
             printf("[FORMATO] sell <nome-item> <categoria> <preço-base> <preço-compre-já> <duração>\n");
@@ -261,7 +267,7 @@ void* enviaHEARTBEAT(void* msgHeartBeat){
 
     while(1){
     //while(strcmp(pMsgHeartBeat->comando, "exit") != 0){
-        sleep(pMsgHeartBeat->hBeat);
+        sleep(/*pMsgHeartBeat->hBeat*/5);
         //pthread_mutex_lock(&pMsgHeartBeat->m);
             sinal_fd = open(SINAL_FIFO, O_RDWR | O_NONBLOCK);
             write(sinal_fd, &aux, sizeof(aux));
@@ -273,9 +279,7 @@ void* enviaHEARTBEAT(void* msgHeartBeat){
 
 }
 
-void parceSaldo(Clientes* cliente, char* message){
-
-    printf("message: %s", message);
+void parceSaldoAdd(Clientes* cliente, char* message){
 
     char command[TAM_MAX];
     char* token;
@@ -301,9 +305,6 @@ void parceSaldo(Clientes* cliente, char* message){
     }
 
     cliente->saldo = saldo;
-
-    printf("saldo: %d\n", saldo);
-    printf("cliente->saldo: %d\n", cliente->saldo);
 
 }
 
@@ -388,6 +389,11 @@ int main(int argc, char** argv){
             printf("\n[ERRO] Erro no envio do username e da password\n");
         }
 
+        cliente.hBeat = atoi(getenv("HEARTBEAT"));
+
+        if(pthread_create(&thread_hb, NULL, &enviaHEARTBEAT, &(cliente)) != 0)
+            return -1;
+
         while(1){
 
             tv.tv_sec = 5;
@@ -428,6 +434,11 @@ int main(int argc, char** argv){
                     perror("Erro ao ler no pipe\n");
                 }
 
+                cliente.hBeat = msgFromBackend.hBeat;
+
+                /*if(pthread_create(&thread_hb, NULL, &enviaHEARTBEAT, &(cliente)) != 0)
+                    return -1;*/
+
                 if(cliente.is_logged_in == 0){
                     if(strcmp(msgFromBackend.msg, "Usuario Valido\n") == 0){
                         printf("Login feito com sucesso\n");
@@ -463,23 +474,22 @@ int main(int argc, char** argv){
                             printf("\nItem nao existente\n");
                             //close(utilizador_fd);
                         }else{
-                            parceSaldo(&cliente, msgFromBackend.msg);
+                            parceSaldoAdd(&cliente, msgFromBackend.msg);
                             printf("Saldo Atualizado: %d\n", cliente.saldo);
 
                         }
+
                     }   
                 }
-
-                cliente.hBeat = msgFromBackend.hBeat;
-
-                if(pthread_create(&thread_hb, NULL, &enviaHEARTBEAT, &(cliente)) != 0)
-                    return -1;
 
             }
 
         }
+
             
     }
+    pthread_join(thread_hb, NULL);
+    //pthread_mutex_destroy(&(cliente.m));
     //close(backend_fd);
     return 0;
 

@@ -14,7 +14,7 @@ void interface(Backend* backend);
 char* verificaUser(Backend* backend, Clientes aux);
 void resetaCliente(Clientes* cliente);
 void removeUser(Backend* backend, Clientes aux);
-void removeItem(Backend* backend);
+void removeItem(Backend* backend, Itens* item);
 void resetaItens(Itens* item);
 
 #endif
