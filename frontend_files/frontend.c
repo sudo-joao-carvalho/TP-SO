@@ -6,6 +6,12 @@ int backend_fd;
 int utilizador_fd;
 int sinal_fd;
 
+void siguser2_handler(){
+    printf("\n\t\tBackend terminado\n");
+    unlink(UTILIZADOR_FIFO_FINAL);
+    exit(EXIT_FAILURE);
+}
+
 void sigterm_handler(){
     printf("Login invalido\n");
     unlink(UTILIZADOR_FIFO_FINAL);
@@ -355,6 +361,7 @@ int main(int argc, char** argv){
     signal(SIGTERM, sigterm_handler);
     signal(SIGQUIT, sigquit_handler);
     signal(SIGINT, sigint_handler);
+    signal(SIGUSR2, siguser2_handler);
     cliente.pid = getpid();
 
     if(argc < 3){

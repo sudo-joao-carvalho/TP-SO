@@ -385,9 +385,6 @@ void commandsAdministrador(Backend* backend, char* command){
     char firstCommand[10];
     char* token;
     char aux_username[TAM_MAX];
-    char message[TAM_MAX] = {"\0"};
-    dataMSG buyStatus;
-    buyStatus.hBeat = backend->aVars->HEARTBEAT;
 
     fflush(stdin);
 
@@ -537,28 +534,13 @@ void commandsAdministrador(Backend* backend, char* command){
         }
 
     }else if(strcmp(firstCommand, "close") == 0){
-        strcpy(buyStatus.msg, message);
-        strcpy(buyStatus.msg, "Backend Encerrou");
 
         if(wordCounts == 1){
 
             printf("\n\t\tBackend encerrado\n");
 
             for(int i = 0; i < clientesCounter; i++){
-                buyStatus.pid = backend->clientes[i].pid;
-
-                sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, backend->clientes[i].pid); 
-                utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY);
-
-                //strcpy(message, "\n\t\tBackend Encerrou\n");
-
-                write(utilizador_fd, &buyStatus, sizeof(buyStatus));
-                close(utilizador_fd);
-
-            }
-
-            for(int i = 0; i < clientesCounter; i++){
-                kill(backend->clientes[i].pid, SIGQUIT);
+                kill(backend->clientes[i].pid, SIGUSR2);
             }
 
             free(backend->itens);
@@ -569,7 +551,6 @@ void commandsAdministrador(Backend* backend, char* command){
             close(utilizador_fd);
             close(sinal_fd);
             unlink(BACKEND_FIFO);
-            unlink(UTILIZADOR_FIFO_FINAL);
             unlink(SINAL_FIFO);
             
             exit(0);
