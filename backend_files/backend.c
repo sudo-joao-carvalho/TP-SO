@@ -212,21 +212,6 @@ void executeCommandBuy(Backend* backend, Clientes* aux){
                                 strcpy(buyStatus.msg, "Licitacao feita\n");
                                 write(utilizador_fd, &buyStatus, sizeof(buyStatus));
 
-                                /*comentar
-                                if(backend->itens[i].tempo == 0){
-                                    if(strcmp(backend->itens[i].nomeC, aux->nome) == 0){
-                                        strcpy(buyStatus.msg, "Item adquirido\n");
-                                        write(utilizador_fd, &buyStatus, sizeof(buyStatus));
-
-                                        aux->saldo = aux->saldo - backend->itens[i].preco_base ;
-                                        updateUserBalance(aux->nome, aux->saldo);
-                                        saveUsersFile(backend->aVars->FUSERS);
-
-                                        removeItem(backend, &(backend->itens[i]));
-                                        itensCounter--;
-                                    }
-                                }*/
-
                                 close(utilizador_fd);
                             }
                         }else{
@@ -276,6 +261,208 @@ void executeCommandTime(Backend* backend, Clientes* cliente){
 
     strcpy(message, "Time %d");
     sprintf(buyStatus.msg, message, backend->tempo_run);
+
+    write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+    close(utilizador_fd);
+}
+
+void executeCommandLitime(Backend* backend, Clientes* cliente){
+
+    char firstCommand[10];
+    char* token;
+    int tempo;
+    char message[TAM_LIST] = {"\0"};
+    dataMSG buyStatus;
+    buyStatus.hBeat = backend->aVars->HEARTBEAT;
+    buyStatus.pid = cliente->pid;
+
+    token = strtok(cliente->comando, " \n");
+
+    int wordCounts = 0;
+    while(token != NULL){
+        if(wordCounts == 0){
+            strcpy(firstCommand, token);
+        }
+
+        if(wordCounts == 1){
+            tempo = atoi(token);
+        }
+        wordCounts++;
+
+        token = strtok(NULL, " ");
+    }
+
+    sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, cliente->pid); 
+    utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY);
+
+    strcpy(buyStatus.msg, "LITIME");
+
+    for(int i = 0; i < itensCounter; i++){
+        if(backend->itens[i].tempo >= tempo){
+            sprintf(message, "\nItem %d  Nome: %s  Categoria: %s  Preco Base: %d  Comprar Ja: %d  Tempo: %d  Nome Vendedor: %s  Nome Comprador: %s\n", backend->itens[i].id, backend->itens[i].nome, backend->itens[i].categoria, backend->itens[i].preco_base, backend->itens[i].comprar_ja, backend->itens[i].tempo, backend->itens[i].nomeV, backend->itens[i].nomeC);
+            strcat(buyStatus.msg, message);
+        }else continue;
+    }
+
+    write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+    close(utilizador_fd);
+}
+
+void executeCommandLival(Backend* backend, Clientes* cliente){
+
+    char firstCommand[10];
+    char* token;
+    int valor;
+    char message[TAM_LIST] = {"\0"};
+    dataMSG buyStatus;
+    buyStatus.hBeat = backend->aVars->HEARTBEAT;
+    buyStatus.pid = cliente->pid;
+
+    token = strtok(cliente->comando, " \n");
+
+    int wordCounts = 0;
+    while(token != NULL){
+        if(wordCounts == 0){
+            strcpy(firstCommand, token);
+        }
+
+        if(wordCounts == 1){
+            valor = atoi(token);
+        }
+        wordCounts++;
+
+        token = strtok(NULL, " ");
+    }
+
+    sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, cliente->pid); 
+    utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY);
+
+    strcpy(buyStatus.msg, "LIVAL");
+
+    for(int i = 0; i < itensCounter; i++){
+        if(backend->itens[i].comprar_ja <= valor){
+            sprintf(message, "\nItem %d  Nome: %s  Categoria: %s  Preco Base: %d  Comprar Ja: %d  Tempo: %d  Nome Vendedor: %s  Nome Comprador: %s\n", backend->itens[i].id, backend->itens[i].nome, backend->itens[i].categoria, backend->itens[i].preco_base, backend->itens[i].comprar_ja, backend->itens[i].tempo, backend->itens[i].nomeV, backend->itens[i].nomeC);
+            strcat(buyStatus.msg, message);
+        }else continue;
+    }
+
+    write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+    close(utilizador_fd);
+}
+
+void executeCommandLisel(Backend* backend, Clientes* cliente){
+
+    char firstCommand[10];
+    char* token;
+    char vendedor[TAM_MAX] = {"\0"};
+    char message[TAM_LIST] = {"\0"};
+    dataMSG buyStatus;
+    buyStatus.hBeat = backend->aVars->HEARTBEAT;
+    buyStatus.pid = cliente->pid;
+
+    token = strtok(cliente->comando, " \n");
+
+    int wordCounts = 0;
+    while(token != NULL){
+        if(wordCounts == 0){
+            strcpy(firstCommand, token);
+        }
+
+        if(wordCounts == 1){
+            strcpy(vendedor, token);
+        }
+        wordCounts++;
+
+        token = strtok(NULL, " ");
+    }
+
+    vendedor[strcspn(vendedor, "\n")] = 0;
+
+    sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, cliente->pid); 
+    utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY);
+
+    strcpy(buyStatus.msg, "LISEL");
+
+    for(int i = 0; i < itensCounter; i++){
+        if(strcmp(backend->itens[i].nomeV, vendedor) == 0){
+            sprintf(message, "\nItem %d  Nome: %s  Categoria: %s  Preco Base: %d  Comprar Ja: %d  Tempo: %d  Nome Vendedor: %s  Nome Comprador: %s\n", backend->itens[i].id, backend->itens[i].nome, backend->itens[i].categoria, backend->itens[i].preco_base, backend->itens[i].comprar_ja, backend->itens[i].tempo, backend->itens[i].nomeV, backend->itens[i].nomeC);
+            strcat(buyStatus.msg, message);
+        }else continue;
+    }
+
+    write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+    close(utilizador_fd);
+}
+
+void executeCommandLicat(Backend* backend, Clientes* cliente){
+
+    char firstCommand[10];
+    char* token;
+    char categoria[TAM_MAX] = {"\0"};
+    char message[TAM_LIST] = {"\0"};
+    dataMSG buyStatus;
+    buyStatus.hBeat = backend->aVars->HEARTBEAT;
+    buyStatus.pid = cliente->pid;
+
+    token = strtok(cliente->comando, " \n");
+
+    int wordCounts = 0;
+    while(token != NULL){
+        if(wordCounts == 0){
+            strcpy(firstCommand, token);
+        }
+
+        if(wordCounts == 1){
+            strcpy(categoria, token);
+        }
+        wordCounts++;
+
+        token = strtok(NULL, " ");
+    }
+
+    categoria[strcspn(categoria, "\n")] = 0;
+
+    sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, cliente->pid); 
+    utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY);
+
+    strcpy(buyStatus.msg, "LICAT");
+
+    for(int i = 0; i < itensCounter; i++){
+        if(strcmp(backend->itens[i].categoria, categoria) == 0){
+            sprintf(message, "\nItem %d  Nome: %s  Categoria: %s  Preco Base: %d  Comprar Ja: %d  Tempo: %d  Nome Vendedor: %s  Nome Comprador: %s\n", backend->itens[i].id, backend->itens[i].nome, backend->itens[i].categoria, backend->itens[i].preco_base, backend->itens[i].comprar_ja, backend->itens[i].tempo, backend->itens[i].nomeV, backend->itens[i].nomeC);
+            strcat(buyStatus.msg, message);
+        }else continue;
+    }
+
+    write(utilizador_fd, &buyStatus, sizeof(buyStatus));
+    close(utilizador_fd);
+}
+
+void executeCommandList(Backend* backend, Clientes* cliente){
+
+    char message[TAM_LIST] = {"\0"};
+    dataMSG buyStatus;
+    buyStatus.hBeat = backend->aVars->HEARTBEAT;
+    buyStatus.pid = cliente->pid;
+
+    sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR, cliente->pid); 
+    utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY);
+
+    strcpy(buyStatus.msg, "LIST");
+
+    for(int i = 0; i < itensCounter; i++){
+        sprintf(message, "\nItem %d  Nome: %s  Categoria: %s  Preco Base: %d  Comprar Ja: %d  Tempo: %d  Nome Vendedor: %s  Nome Comprador: %s\n", backend->itens[i].id, backend->itens[i].nome, backend->itens[i].categoria, backend->itens[i].preco_base, backend->itens[i].comprar_ja, backend->itens[i].tempo, backend->itens[i].nomeV, backend->itens[i].nomeC);
+        strcat(buyStatus.msg, message);
+    }
+
+    /*printf("\nItem %d:\n", backend->itens[i].id);
+    printf("\tNome: %s\n", backend->itens[i].nome);
+    printf("\tCategoria: %s\n", backend->itens[i].categoria);
+    printf("\tPreco Base: %d\n", backend->itens[i].preco_base);
+    printf("\tComprar Ja: %d\n", backend->itens[i].comprar_ja);
+    printf("\tTempo: %d\n", backend->itens[i].tempo);
+    printf("\tNome Vendedor: %s\n", backend->itens[i].nomeV);
+    printf("\tNome Comprador: %s\n", backend->itens[i].nomeC);*/
 
     write(utilizador_fd, &buyStatus, sizeof(buyStatus));
     close(utilizador_fd);
@@ -359,6 +546,26 @@ void executeCommandsFromUser(Backend* backend, Clientes* cliente){
         executeCommandSell(backend, cliente);
     }
 
+    if(strcmp(firstCommand, "list") == 0){
+        executeCommandList(backend, cliente);
+    }
+
+    if(strcmp(firstCommand, "licat") == 0){
+        executeCommandLicat(backend, cliente);
+    }
+
+    if(strcmp(firstCommand, "lisel") == 0){
+        executeCommandLisel(backend, cliente);
+    }
+
+    if(strcmp(firstCommand, "lival") == 0){
+        executeCommandLival(backend, cliente);
+    }
+
+    if(strcmp(firstCommand, "litime") == 0){
+        executeCommandLitime(backend, cliente);
+    }
+
     if(strcmp(firstCommand, "time") == 0){
         executeCommandTime(backend, cliente);
     }
@@ -387,9 +594,6 @@ void commandsAdministrador(Backend* backend, char* command){
     char aux_username[TAM_MAX];
 
     fflush(stdin);
-
-    //printf("Insira o comando de administrador que pretende executar: ");
-    //fgets(command, TAM_MAX, stdin);
 
     token = strtok(command, " \n");
 

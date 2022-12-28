@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include <sys/select.h>
 
-
+#define TAM_LIST 4000
 #define TAM_MAX 256
 #define BACKEND_FIFO "../backend_files/BACKEND_FIFO" ///Users/joaocarvalho/Desktop/Universidade/2oAno/SO/TP/TP-SO/backend_files/BACKEND_FIFO
 #define SINAL_FIFO  "../backend_files/SINAL_FIFO"
@@ -71,5 +71,5 @@ typedef struct {
     pid_t pid;
     int hBeat;
     //int clienteSaldo;
-    char msg[100];
+    char msg[TAM_LIST];
 }dataMSG;

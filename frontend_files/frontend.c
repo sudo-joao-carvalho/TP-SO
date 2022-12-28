@@ -82,8 +82,8 @@ void readCommands(char* CommandM, Clientes aux){
             write(backend_fd, &aux, sizeof(aux));
 
             //sell mota1 automoveis 10 20 100
-            //sell mota2 automoveis 10 20 100
-            //sell mota3 automoveis 10 20 100
+            //sell mota2 automoveis 10 30 100
+            //sell mota3 automoveis 10 40 100
 
             //sell mota1 automoveis 10 20 20
             //sell mota2 automoveis 10 20 20
@@ -285,18 +285,15 @@ void* enviaHEARTBEAT(void* msgHeartBeat){
 
 }
 
-void parceSaldoAddOrCashOrTime(Clientes* cliente, char* message){
+void parseCommands(Clientes* cliente, char* message){
 
     char firstCommand[10];
-    char command[TAM_MAX];
+    char command[TAM_LIST];
     char* token;
     int saldo;
     int tempo;
 
     fflush(stdin);
-
-    //printf("Insira o comando que pretende executar: ");
-    //fgets(command, TAM_MAX, stdin);
 
     strcpy(command, message);
     token = strtok(command, " \n");
@@ -330,6 +327,36 @@ void parceSaldoAddOrCashOrTime(Clientes* cliente, char* message){
             if(wordCounts == 1){
                 tempo = atoi(token);
                 printf("Tempo atual (em segundos): %d", tempo);
+            }
+        }
+
+        if(strcmp(firstCommand, "LIST") == 0){
+            if(wordCounts == 0){
+                printf("\n%s", message);
+            }
+        }
+
+        if(strcmp(firstCommand, "LICAT") == 0){
+            if(wordCounts == 0){
+                printf("\n%s", message);
+            }
+        }
+
+        if(strcmp(firstCommand, "LISEL") == 0){
+            if(wordCounts == 0){
+                printf("\n%s", message);
+            }
+        }
+
+        if(strcmp(firstCommand, "LIVAL") == 0){
+            if(wordCounts == 0){
+                printf("\n%s", message);
+            }
+        }
+
+        if(strcmp(firstCommand, "LITIME") == 0){
+            if(wordCounts == 0){
+                printf("\n%s", message);
             }
         }
         wordCounts++;
@@ -506,7 +533,7 @@ int main(int argc, char** argv){
                             printf("\n\t\tBackend Encerrou\n");
                             //close(utilizador_fd);
                         }else{
-                            parceSaldoAddOrCashOrTime(&cliente, msgFromBackend.msg);
+                            parseCommands(&cliente, msgFromBackend.msg);
                             //printf("Saldo Atualizado: %d\n", cliente.saldo);
 
                         }
