@@ -1149,15 +1149,6 @@ void* removeItemPorLicitacao(void* backend_aux){
                     if(strcmp(pBackend_aux->clientes[j].nome, pBackend_aux->itens[i].nomeC) == 0){
                         resposta_t.pid = pBackend_aux->clientes[j].pid;
 
-                        //sprintf(UTILIZADOR_FIFO_FINAL, UTILIZADOR,  pBackend_aux->clientes[j].pid); 
-                        //printf("\nUTILIZADOR_FIFO_FINAL\n: %s", UTILIZADOR_FIFO_FINAL);
-                        //utilizador_fd = open(UTILIZADOR_FIFO_FINAL, O_WRONLY | O_NONBLOCK);
-
-                        //strcpy(resposta_t.msg, "Item adquirido\n");
-                        //write(utilizador_fd, &resposta_t, sizeof(resposta_t));
-
-                        printf("Item adquirido\n");
-
                         //saldo do que comprou
                         pBackend_aux->clientes[j].saldo = pBackend_aux->clientes[j].saldo - pBackend_aux->itens[i].preco_base;
                         updateUserBalance(pBackend_aux->clientes[j].nome, pBackend_aux->clientes[j].saldo);
