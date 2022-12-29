@@ -82,8 +82,8 @@ void readCommands(char* CommandM, Clientes aux){
             write(backend_fd, &aux, sizeof(aux));
 
             //sell mota1 automoveis 10 20 100
-            //sell mota2 automoveis 10 30 100
-            //sell mota3 automoveis 10 40 100
+            //sell mota2 automoveis 10 20 100
+            //sell mota3 automoveis 10 20 100
 
             //sell mota1 automoveis 10 20 20
             //sell mota2 automoveis 10 20 20
@@ -359,6 +359,17 @@ void parseCommands(Clientes* cliente, char* message){
                 printf("\n%s", message);
             }
         }
+
+        if(strcmp(firstCommand, "Objeto") == 0){
+            if(wordCounts == 0){
+                printf("\n\t%s", message);
+            }
+        }
+        if(strcmp(firstCommand, "Ninguem") == 0){
+            if(wordCounts == 0){
+                printf("\n\t%s", message);
+            }
+        }
         wordCounts++;
 
         token = strtok(NULL, " ");
@@ -512,11 +523,14 @@ int main(int argc, char** argv){
                     }
                 }
 
-                //printf("msgFromBackend.msg: %s", msgFromBackend.msg);
+                //printf("\nmsgFromBackend.msg: {%s}\n", msgFromBackend.msg);
 
                 if(cliente.is_logged_in == 1){
 
                     if(cliente.pid == msgFromBackend.pid){
+
+                        //printf("msgFromBackend.msg: %s", msgFromBackend.msg);
+
                         if(strcmp(msgFromBackend.msg, "Item adquirido\n") == 0){
                             printf("Item adquirido\n");
                             //close(utilizador_fd);
@@ -532,6 +546,8 @@ int main(int argc, char** argv){
                         }else if(strcmp(msgFromBackend.msg, "Backend Encerrou") == 0){
                             printf("\n\t\tBackend Encerrou\n");
                             //close(utilizador_fd);
+                        }else if(strcmp(msgFromBackend.msg, "Novo Item a venda. (use o comando list para ver)") == 0){
+                            printf("\n\tNovo Item a venda. (use o comando list para ver)\n");
                         }else{
                             parseCommands(&cliente, msgFromBackend.msg);
                             //printf("Saldo Atualizado: %d\n", cliente.saldo);
