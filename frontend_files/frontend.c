@@ -362,7 +362,7 @@ void parseCommands(Clientes* cliente, char* message){
 
         if(strcmp(firstCommand, "Objeto") == 0){
             if(wordCounts == 0){
-                printf("\n\t%s", message);
+                printf("\n\t%s\n", message);
             }
         }
         if(strcmp(firstCommand, "Ninguem") == 0){

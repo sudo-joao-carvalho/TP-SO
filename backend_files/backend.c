@@ -1037,6 +1037,9 @@ void removeItem(Backend* backend, Itens* item){
         if(backend->itens[i].id == item->id){
             if(strcmp(backend->itens[i].nomeC, "nC") != 0){
                 sprintf(message, "Objeto %s adquirido por %s", backend->itens[i].nome, backend->itens[i].nomeC);
+                for(int i = 0; i < sizeof(buyStatus.msg); i++){ //Resetar a mensagem
+                    buyStatus.msg[i] = '\0';
+                }
                 strcat(buyStatus.msg, message);
 
                 for(int i = 0; i < clientesCounter; i++){
