@@ -1429,10 +1429,6 @@ int main(int argc, char** argv){
         
         if(FD_ISSET(sinal_fd, &read_fds)){
 
-            //POR ISTO DENTRO DO WHILE(STRCMP DO COMANDO QUE RECEBE COM EXIT) --> se o comando for exit ele para de mandar heartbeats e elimina da kick ao user
-            //depois dar close(backend_fd) e unlink(BACKEND_FIFO)
-            //RECEBE O HEARBEAT
-
             int pid;
 
             int a = read(sinal_fd, &pid, sizeof(pid));
