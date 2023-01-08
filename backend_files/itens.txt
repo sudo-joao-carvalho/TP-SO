@@ -1,0 +1,2 @@
+2 mota2 automoveis 10 20 8 joaoc -
+3 mota3 automoveis 10 20 12 joaoc -

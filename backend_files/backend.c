@@ -718,11 +718,60 @@ void commandsAdministrador(Backend* backend, char* command){
 
         if(wordCounts == 1){
 
+            for(int i = 0; i < clientesCounter; i++){
+                printf("Encerrando cliente: %s\n", backend->clientes[i].nome);
+            }
+
             printf("\n\t\tBackend encerrado\n");
 
             for(int i = 0; i < clientesCounter; i++){
                 kill(backend->clientes[i].pid, SIGUSR2);
             }
+
+            FILE *f = fopen(backend->aVars->FITEMS, "wt");
+
+            if (!f)
+            {
+                printf("\nErro na abertura do ficheiro!\n");
+                fclose(f);
+                return;
+            }
+
+            for (int i = 0; i < itensCounter; i++)
+            {
+                if (backend->itens[i].id != 0)
+                {
+                    if (strcmp(backend->itens[i].nomeC, "nC") == 0)
+                    {
+                        strcpy(backend->itens[i].nomeC, "-");
+
+                        fprintf(f, "%d %s %s %d %d %d %s %s\n",
+                                backend->itens[i].id,
+                                backend->itens[i].nome,
+                                backend->itens[i].categoria,
+                                backend->itens[i].preco_base,
+                                backend->itens[i].comprar_ja,
+                                backend->itens[i].tempo,
+                                backend->itens[i].nomeV,
+                                backend->itens[i].nomeC);
+                    }
+                    else
+                    {
+                        fprintf(f, "%d %s %s %d %d %d %s %s\n",
+                                backend->itens[i].id,
+                                backend->itens[i].nome,
+                                backend->itens[i].categoria,
+                                backend->itens[i].preco_base,
+                                backend->itens[i].comprar_ja,
+                                backend->itens[i].tempo,
+                                backend->itens[i].nomeV,
+                                backend->itens[i].nomeC);
+                    }
+                }
+            }
+
+            fclose(f);
+
 
             free(backend->itens);
             free(backend->aVars);
@@ -785,7 +834,7 @@ ambientVars* getAmbientVariables(Backend* backend){
 
 }
 
-Itens* readItens(Backend* backend){
+void readItens(Backend* backend){
 
     int i = 0;
     FILE* ptr;
@@ -793,7 +842,7 @@ Itens* readItens(Backend* backend){
 
     if (ptr == NULL) {
         printf("[ERRO] Ficheiro nao existe\n");
-        return backend->itens;
+        //return backend->itens;
     }  
     
     while (!feof(ptr)){
@@ -803,11 +852,16 @@ Itens* readItens(Backend* backend){
 
         fscanf(ptr," %d %s %s %d %d %d %s %s", &(backend->itens[i].id), backend->itens[i].nome, backend->itens[i].categoria, &(backend->itens[i].preco_base), &(backend->itens[i].comprar_ja), &(backend->itens[i].tempo), backend->itens[i].nomeV, backend->itens[i].nomeC);
          
+        if(strcmp(backend->itens[i].nome, "n") == 0){
+            return;
+        }
+
         i++;
+        itensCounter++;
     }
 
     fclose(ptr);
-    return backend->itens;
+    //return backend->itens;
 
  }   
 
@@ -1135,7 +1189,6 @@ void* removeItemPorLicitacao(void* backend_aux){
     while(1){
 
         for(int i = 0; i < itensCounter; i++){
-            //while(pBackend_aux->itens[i].tempo > -1)
 
             if(pBackend_aux->itens[i].tempo == -1){
 
@@ -1238,6 +1291,12 @@ int main(int argc, char** argv){
     inicializaClientes(&backend);
     inicializaItens(&backend);
 
+    //CARREGA ITENS DE FITEMS
+    readItens(&backend);
+    /*for(int i = 0; backend.itens[i].id != '\0'; i++){
+        printf("\n%d %s %s %d %d %d %s %s\n", backend.itens[i].id, backend.itens[i].nome, backend.itens[i].categoria, backend.itens[i].preco_base, backend.itens[i].comprar_ja, backend.itens[i].tempo, backend.itens[i].nomeV, backend.itens[i].nomeC);
+    }*/
+
     if(backend.itens == NULL){
         printf("[ERRO] Memoria nao alocada\n");
         free(backend.itens);
@@ -1331,8 +1390,8 @@ int main(int argc, char** argv){
 
                 //RECEBE AS CREDENCIAIS DOS USERS
                 if(strcmp(clienteValidoMsg, "Usuario Valido\n") == 0){
-                    printf("\nUTILIZADOR_%d", backend.clientes[clientesCounter].pid);
-                    printf("\n recebi o username [%s] e a password[%s]", backend.clientes[clientesCounter].nome, backend.clientes[clientesCounter].password);
+                    printf("\nUtilizador %s logado com sucesso\n", backend.clientes[clientesCounter].nome);
+                    //printf("\n recebi o username [%s] e a password[%s]", backend.clientes[clientesCounter].nome, backend.clientes[clientesCounter].password);
                     aux.is_logged_in = 1;
                     backend.clientes[clientesCounter].is_logged_in = 1;
 
@@ -1360,8 +1419,6 @@ int main(int argc, char** argv){
                 aux.saldo = getUserBalance(aux.nome);
                 printf("\nCOMANDO de %s: %s\n", aux.nome, aux.comando);
 
-                //retomar aqui
-                //executar os comandos inseridos pelos users
                 executeCommandsFromUser(&backend, &aux);
             }
 
