@@ -1195,33 +1195,35 @@ void* removeItemPorLicitacao(void* backend_aux){
 
             if(pBackend_aux->itens[i].tempo == -1){
 
-                if(strcmp(pBackend_aux->itens[i].nomeC, "nC") == 0){
-                    printf("Ninguem licitou no item %s", pBackend_aux->itens[i].nome);
-                    removeItem(pBackend_aux, &(pBackend_aux->itens[i]));
-                    itensCounter--;
-                }
+                pthread_mutex_lock(&(pBackend_aux->m));
 
-                for(int j = 0; j < clientesCounter; j++){
-                    if(strcmp(pBackend_aux->clientes[j].nome, pBackend_aux->itens[i].nomeC) == 0){
-                        resposta_t.pid = pBackend_aux->clientes[j].pid;
-
-                        //saldo do que comprou
-                        pBackend_aux->clientes[j].saldo = pBackend_aux->clientes[j].saldo - pBackend_aux->itens[i].preco_base;
-                        updateUserBalance(pBackend_aux->clientes[j].nome, pBackend_aux->clientes[j].saldo);
-                        saveUsersFile(pBackend_aux->aVars->FUSERS);
-
-                        //close(utilizador_fd);
+                    if(strcmp(pBackend_aux->itens[i].nomeC, "nC") == 0){
+                        printf("Ninguem licitou no item %s", pBackend_aux->itens[i].nome);
                         removeItem(pBackend_aux, &(pBackend_aux->itens[i]));
                         itensCounter--;
                     }
 
-                    //saldo do que vendeu
-                    if(strcmp(pBackend_aux->clientes[j].nome, pBackend_aux->itens[i].nomeV) == 0){
-                        pBackend_aux->clientes[j].saldo += pBackend_aux->itens[i].preco_base;
-                        updateUserBalance(pBackend_aux->clientes[j].nome, pBackend_aux->clientes[j].saldo); 
-                        saveUsersFile(pBackend_aux->aVars->FUSERS);
-                    }
-                    
+                    for(int j = 0; j < clientesCounter; j++){
+                        if(strcmp(pBackend_aux->clientes[j].nome, pBackend_aux->itens[i].nomeC) == 0){
+                            resposta_t.pid = pBackend_aux->clientes[j].pid;
+
+                            //saldo do que comprou
+                            pBackend_aux->clientes[j].saldo = pBackend_aux->clientes[j].saldo - pBackend_aux->itens[i].preco_base;
+                            updateUserBalance(pBackend_aux->clientes[j].nome, pBackend_aux->clientes[j].saldo);
+                            saveUsersFile(pBackend_aux->aVars->FUSERS);
+
+                            //close(utilizador_fd);
+                            removeItem(pBackend_aux, &(pBackend_aux->itens[i]));
+                            itensCounter--;
+                        }
+
+                        //saldo do que vendeu
+                        if(strcmp(pBackend_aux->clientes[j].nome, pBackend_aux->itens[i].nomeV) == 0){
+                            pBackend_aux->clientes[j].saldo += pBackend_aux->itens[i].preco_base;
+                            updateUserBalance(pBackend_aux->clientes[j].nome, pBackend_aux->clientes[j].saldo); 
+                            saveUsersFile(pBackend_aux->aVars->FUSERS);
+                        }
+                    pthread_mutex_unlock(&(pBackend_aux->m));
                 }
             }
 
@@ -1229,7 +1231,7 @@ void* removeItemPorLicitacao(void* backend_aux){
 
     }
 
-
+    pthread_exit(NULL);
 }
 
 void* inactivityThread(void* msgHeartBeat){
@@ -1247,25 +1249,27 @@ void* inactivityThread(void* msgHeartBeat){
                 pMsgHeartBeat->itens[i].tempo--;
             }
 
-        for(int i = 0; i < clientesCounter; i++){
-            if(pMsgHeartBeat->clientes[i].pid != 0){ //verifica que o user existe
-                pMsgHeartBeat->clientes[i].tempo_log++; //aumenta o tempo de log in
+        pthread_mutex_lock(&(pMsgHeartBeat->m));
+            for(int i = 0; i < clientesCounter; i++){
+                if(pMsgHeartBeat->clientes[i].pid != 0){ //verifica que o user existe
+                    pMsgHeartBeat->clientes[i].tempo_log++; //aumenta o tempo de log in
 
-                if(pMsgHeartBeat->clientes[i].tempo_log > pMsgHeartBeat->aVars->HEARTBEAT + 2){
-                    strcpy(resposta_t.msg, messageI);
+                    if(pMsgHeartBeat->clientes[i].tempo_log > pMsgHeartBeat->aVars->HEARTBEAT + 2){
+                        strcpy(resposta_t.msg, messageI);
 
-                    printf("\nCliente %s foi removido da plataforma\n", pMsgHeartBeat->clientes[i].nome);
+                        printf("\nCliente %s foi removido da plataforma\n", pMsgHeartBeat->clientes[i].nome);
 
-                    kill(pMsgHeartBeat->clientes[i].pid, SIGINT);
-                    removeUser(pMsgHeartBeat, pMsgHeartBeat->clientes[i]);
-                    clientesCounter--;
-                    break;
+                        kill(pMsgHeartBeat->clientes[i].pid, SIGINT);
+                        removeUser(pMsgHeartBeat, pMsgHeartBeat->clientes[i]);
+                        clientesCounter--;
+                        break;
+                    }
                 }
             }
-        }
+        pthread_mutex_lock(&(pMsgHeartBeat->m));
 
     }
-    //pthread_exit(NULL);
+    pthread_exit(NULL);
 
 }
 
@@ -1283,9 +1287,8 @@ int main(int argc, char** argv){
     char* clienteValidoMsg;
     dataMSG resposta;
     pthread_t thread_inacitvity;
-    pthread_t thread_heartBeat;
     pthread_t thread_removeItemVendidoPorLicitacoes;
-    pthread_mutex_init(&backend.clientes->m, NULL);
+    pthread_mutex_init(&backend.m, NULL);
     aux.is_logged_in = 0;
     char command[TAM_MAX];
 
@@ -1444,6 +1447,10 @@ int main(int argc, char** argv){
 
         }
     }
+
+    pthread_join(thread_inacitvity, NULL);
+    pthread_join(thread_removeItemVendidoPorLicitacoes, NULL);
+    pthread_mutex_destroy(&backend.m);
     free(backend.itens);
     return 0;
 

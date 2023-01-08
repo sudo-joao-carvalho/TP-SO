@@ -29,7 +29,6 @@ typedef struct Clientes{
     int saldo;
     int hBeat;
     int is_logged_in;
-    pthread_mutex_t m;
     int tempo_log;
 } Clientes;
 
@@ -65,6 +64,7 @@ typedef struct Backend{
     ambientVars* aVars;
     char msg[100];
     int tempo_run;
+    pthread_mutex_t m;
 }Backend;
 
 typedef struct {
