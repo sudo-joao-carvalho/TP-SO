@@ -1,3 +1,3 @@
-joaoc ola123 540
-barre15 123ola 260
+joaoc ola123 525
+barre15 123ola 270
 barre12 123olaaa 300

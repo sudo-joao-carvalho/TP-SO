@@ -1107,7 +1107,7 @@ void* removeItemPorLicitacao(void* backend_aux){
 
             if(pBackend_aux->itens[i].tempo == -1){
 
-                pthread_mutex_lock(&(pBackend_aux->m));
+                //pthread_mutex_lock(&(pBackend_aux->m));
 
                     if(strcmp(pBackend_aux->itens[i].nomeC, "nC") == 0){
                         printf("Ninguem licitou no item %s", pBackend_aux->itens[i].nome);
@@ -1135,7 +1135,7 @@ void* removeItemPorLicitacao(void* backend_aux){
                             updateUserBalance(pBackend_aux->clientes[j].nome, pBackend_aux->clientes[j].saldo); 
                             saveUsersFile(pBackend_aux->aVars->FUSERS);
                         }
-                    pthread_mutex_unlock(&(pBackend_aux->m));
+                    //pthread_mutex_unlock(&(pBackend_aux->m));
                 }
             }
 
@@ -1161,7 +1161,7 @@ void* inactivityThread(void* msgHeartBeat){
                 pMsgHeartBeat->itens[i].tempo--;
             }
 
-        pthread_mutex_lock(&(pMsgHeartBeat->m));
+        //pthread_mutex_lock(&(pMsgHeartBeat->m));
             for(int i = 0; i < clientesCounter; i++){
                 if(pMsgHeartBeat->clientes[i].pid != 0){ //verifica que o user existe
                     pMsgHeartBeat->clientes[i].tempo_log++; //aumenta o tempo de log in
@@ -1178,7 +1178,7 @@ void* inactivityThread(void* msgHeartBeat){
                     }
                 }
             }
-        pthread_mutex_lock(&(pMsgHeartBeat->m));
+        //pthread_mutex_lock(&(pMsgHeartBeat->m));
 
     }
     pthread_exit(NULL);
